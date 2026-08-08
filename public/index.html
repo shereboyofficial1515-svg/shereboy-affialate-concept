@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SHEREBOY AFFILIATE CONCEPT — Honest Deals, Curated Daily</title>
+<meta name="description" content="Curated affiliate deals across electronics, home, fashion, beauty, and phone accessories — with an AI shopping assistant to help you choose." />
+<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="hero-eyebrow">⭐ Trusted deal curation since 2026</span>
+      <h1>Smart shopping starts with <span>honest picks.</span></h1>
+      <p class="lead">We compare, verify, and hand-pick the best deals across top categories — then let our AI assistant help you decide, with no pushy sales talk.</p>
+      <div class="hero-actions">
+        <a href="/products.html" class="btn btn-gold">Browse All Deals</a>
+        <a href="/products.html?deal=true" class="btn btn-outline">Today's Top Deals</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><b id="statProducts">--</b><span>Products Curated</span></div>
+        <div class="hero-stat"><b id="statCategories">--</b><span>Categories</span></div>
+        <div class="hero-stat"><b>24/7</b><span>AI Assistant</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="deal-float d1">
+        <span class="ribbon">Verified Deal</span>
+        <div style="height:110px;border-radius:10px;background:linear-gradient(135deg,#1E4FD9,#0D1E3D);margin-bottom:10px;"></div>
+        <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Wireless Headphones</div>
+        <div class="price-row"><span class="price-now">₦38,250</span><span class="price-was">₦45,000</span></div>
+      </div>
+      <div class="deal-float d2">
+        <span class="ribbon">Verified Deal</span>
+        <div style="height:110px;border-radius:10px;background:linear-gradient(135deg,#D4A954,#E4C27C);margin-bottom:10px;"></div>
+        <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Smart Fitness Watch</div>
+        <div class="price-row"><span class="price-now">₦28,800</span><span class="price-was">₦32,000</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Categories</span>
+        <h2>Shop by what you need</h2>
+      </div>
+      <a href="/categories.html" class="btn btn-ghost btn-sm">View all →</a>
+    </div>
+    <div class="cat-grid" id="homeCategoryGrid">
+      <div class="empty-state">Loading categories…</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--gray-50);">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Handpicked</span>
+        <h2>Featured products</h2>
+        <p class="section-sub">The pieces our team keeps coming back to — verified quality, fair pricing.</p>
+      </div>
+      <a href="/products.html?featured=true" class="btn btn-ghost btn-sm">See all featured →</a>
+    </div>
+    <div class="product-grid" id="homeFeaturedGrid">
+      <div class="empty-state">Loading products…</div>
+    </div>
+  </div>
+</section>
+
+<section class="section deals-strip">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Limited time</span>
+        <h2>Today's deals</h2>
+      </div>
+      <a href="/products.html?deal=true" class="btn btn-gold btn-sm">Shop all deals →</a>
+    </div>
+    <div class="product-grid" id="homeDealsGrid">
+      <div class="empty-state">Loading deals…</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Community</span>
+        <h2>What shoppers are saying</h2>
+      </div>
+    </div>
+    <div class="testi-grid" id="homeTestimonials">
+      <div class="empty-state">Loading testimonials…</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--gray-50);">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Have a question?</span>
+        <h2>Quick answers</h2>
+      </div>
+      <a href="/faq.html" class="btn btn-ghost btn-sm">View full FAQ →</a>
+    </div>
+    <div id="homeFaqPreview"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="newsletter">
+      <div>
+        <h2 style="color:#fff;">Never miss a deal</h2>
+        <p style="color:#DDE3F2;margin-top:6px;">Get the best verified deals sent straight to your inbox, weekly.</p>
+      </div>
+      <form class="newsletter-form">
+        <input type="email" placeholder="you@email.com" required />
+        <button class="btn btn-gold" type="submit">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="ai-widget"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/ai-widget.js"></script>
+<script src="/js/home.js"></script>
+</body>
+</html>

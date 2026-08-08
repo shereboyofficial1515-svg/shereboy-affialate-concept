@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>All Products — SHEREBOY AFFILIATE CONCEPT</title>
+<meta name="description" content="Search and filter our full catalog of curated affiliate deals." />
+<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="page-hero">
+  <div class="container">
+    <h1>All Products</h1>
+    <p>Search, filter, and compare — every item here has been reviewed before it's listed.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <input type="search" id="searchInput" class="input" placeholder="Search products…" />
+        <select id="categoryFilter" class="input">
+          <option value="">All categories</option>
+        </select>
+        <select id="sortFilter" class="input">
+          <option value="newest">Newest</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="name_asc">Name: A–Z</option>
+        </select>
+      </div>
+      <div class="toolbar-group">
+        <button class="chip-filter" id="chipFeatured">Featured</button>
+        <button class="chip-filter" id="chipDeal">On Deal</button>
+      </div>
+    </div>
+
+    <div class="product-grid" id="productGrid">
+      <div class="empty-state">Loading products…</div>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="ai-widget"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/ai-widget.js"></script>
+<script src="/js/products.js"></script>
+</body>
+</html>

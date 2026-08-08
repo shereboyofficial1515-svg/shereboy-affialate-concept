@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Login — SHEREBOY AFFILIATE CONCEPT</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/admin/css/admin.css" />
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-brand"><span class="login-mark">S</span> SHEREBOY Admin</div>
+    <p class="login-sub">Sign in to manage products, categories, and messages.</p>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" required autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" required autocomplete="current-password" minlength="6" />
+      </div>
+      <button type="submit" class="btn btn-primary">Log In</button>
+      <div class="form-msg" id="loginMsg" style="display:none;"></div>
+    </form>
+
+    <p style="margin-top:20px;text-align:center;"><a href="/index.html" style="color:var(--royal-600);font-size:0.85rem;font-weight:600;">← Back to site</a></p>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/admin/js/admin-auth.js"></script>
+</body>
+</html>

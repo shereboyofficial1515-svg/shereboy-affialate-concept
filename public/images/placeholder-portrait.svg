@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <rect width="300" height="300" fill="#142A52"/>
+  <circle cx="150" cy="115" r="55" fill="#2F63F2"/>
+  <path d="M60 260 Q150 175 240 260 Z" fill="#2F63F2"/>
+  <text x="150" y="285" font-family="Inter, sans-serif" font-size="13" fill="#E4C27C" text-anchor="middle">Placeholder — replace with your photo</text>
+</svg>

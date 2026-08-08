@@ -1,0 +1,27 @@
+{
+  "name": "shereboy-affiliate-concept",
+  "version": "1.0.0",
+  "description": "SHEREBOY AFFILIATE CONCEPT - a premium, framework-free affiliate marketing platform with an admin dashboard and Gemini AI shopping assistant.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node database/seed.js"
+  },
+  "author": "SHEREBOY TECH LTD",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.19.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "multer": "^2.0.0",
+    "dotenv": "^16.4.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.4.0",
+    "cookie-parser": "^1.4.6",
+    "xss-clean": "^0.1.4",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0",
+    "slugify": "^1.6.6",
+    "validator": "^13.12.0"
+  }
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — SHEREBOY Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/admin/css/admin.css" />
+</head>
+<body>
+
+<div class="dash">
+  <aside class="sidebar">
+    <div class="brand"><span class="login-mark">S</span> SHEREBOY Admin</div>
+    <nav class="side-nav">
+      <button data-view="overview" class="active">📊 Overview</button>
+      <button data-view="products">🛍️ Products</button>
+      <button data-view="categories">🗂️ Categories</button>
+      <button data-view="messages">✉️ Messages</button>
+      <button data-view="subscribers">📬 Subscribers</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logoutBtn">↩ Log out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="dash-header">
+      <h1 id="viewTitle">Overview</h1>
+      <span id="adminName" style="color:var(--gray-500);font-size:0.85rem;"></span>
+    </div>
+
+    <!-- Overview -->
+    <section id="view-overview">
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card"><b>--</b><span>Total products</span></div>
+        <div class="stat-card"><b>--</b><span>Categories</span></div>
+        <div class="stat-card"><b>--</b><span>Featured</span></div>
+        <div class="stat-card"><b>--</b><span>On deal</span></div>
+        <div class="stat-card"><b>--</b><span>Out of stock</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Welcome back</h3></div>
+        <p style="color:var(--gray-500);font-size:0.9rem;">Use the sidebar to publish new products, manage categories, and review messages from customers. Anything you publish here appears on the live site immediately — no code editing required.</p>
+      </div>
+    </section>
+
+    <!-- Products -->
+    <section id="view-products" hidden>
+      <div class="panel-head" style="margin-bottom:16px;">
+        <h3>All products</h3>
+        <button class="btn btn-primary btn-sm" id="addProductBtn">+ Add product</button>
+      </div>
+      <div class="panel" style="padding:0;overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Badges</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="productsTableBody"><tr><td colspan="6" class="empty-state">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section id="view-categories" hidden>
+      <div class="panel-head" style="margin-bottom:16px;">
+        <h3>All categories</h3>
+        <button class="btn btn-primary btn-sm" id="addCategoryBtn">+ Add category</button>
+      </div>
+      <div class="panel" style="padding:0;overflow-x:auto;">
+        <table>
+          <thead><tr><th>Icon</th><th>Name</th><th>Products</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody id="categoriesTableBody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Messages -->
+    <section id="view-messages" hidden>
+      <div class="panel" style="padding:0;overflow-x:auto;">
+        <table>
+          <thead><tr><th>From</th><th>Subject</th><th>Message</th><th>Received</th></tr></thead>
+          <tbody id="messagesTableBody"><tr><td colspan="4" class="empty-state">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Subscribers -->
+    <section id="view-subscribers" hidden>
+      <div class="panel" style="padding:0;overflow-x:auto;">
+        <table>
+          <thead><tr><th>Email</th><th>Subscribed</th></tr></thead>
+          <tbody id="subscribersTableBody"><tr><td colspan="2" class="empty-state">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Product modal -->
+<div class="modal-overlay" id="productModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="productModalTitle">Add Product</h3>
+      <button class="modal-close" id="productModalClose">✕</button>
+    </div>
+    <form id="productForm">
+      <input type="hidden" id="productId" />
+      <div class="form-grid">
+        <div class="field span-2">
+          <label>Product name</label>
+          <input type="text" id="pName" required minlength="3" />
+        </div>
+        <div class="field span-2">
+          <label>Description</label>
+          <textarea id="pDescription" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label>Price (₦)</label>
+          <input type="number" id="pPrice" min="0" step="0.01" required />
+        </div>
+        <div class="field">
+          <label>Discount (%)</label>
+          <input type="number" id="pDiscount" min="0" max="100" step="0.01" value="0" />
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="pCategory"></select>
+        </div>
+        <div class="field">
+          <label>Availability</label>
+          <select id="pAvailability">
+            <option value="in_stock">In stock</option>
+            <option value="limited">Limited stock</option>
+            <option value="out_of_stock">Out of stock</option>
+          </select>
+        </div>
+        <div class="field span-2">
+          <label>Affiliate link</label>
+          <input type="url" id="pLink" placeholder="https://…" required />
+        </div>
+        <div class="field span-2">
+          <div class="checkbox-row"><input type="checkbox" id="pFeatured" /><label for="pFeatured" style="margin:0;">Mark as Featured</label></div>
+          <div class="checkbox-row" style="margin-top:8px;"><input type="checkbox" id="pDeal" /><label for="pDeal" style="margin:0;">Mark as Deal</label></div>
+        </div>
+
+        <div class="field span-2">
+          <label>Specifications</label>
+          <div id="specRows"></div>
+          <button type="button" class="btn btn-ghost btn-sm" id="addSpecRow">+ Add spec</button>
+        </div>
+
+        <div class="field span-2">
+          <label>Images (up to 8)</label>
+          <input type="file" id="pImages" accept="image/*" multiple />
+          <div class="image-preview-row" id="existingImages"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:22px;">
+        <button type="submit" class="btn btn-primary">Save Product</button>
+        <button type="button" class="btn btn-ghost" id="cancelProductBtn">Cancel</button>
+      </div>
+      <div class="form-msg" id="productFormMsg" style="display:none;"></div>
+    </form>
+  </div>
+</div>
+
+<!-- Category modal -->
+<div class="modal-overlay" id="categoryModalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <h3 id="categoryModalTitle">Add Category</h3>
+      <button class="modal-close" id="categoryModalClose">✕</button>
+    </div>
+    <form id="categoryForm">
+      <input type="hidden" id="categoryId" />
+      <div class="field"><label>Name</label><input type="text" id="cName" required minlength="2" /></div>
+      <div class="field"><label>Icon (emoji)</label><input type="text" id="cIcon" placeholder="🛍️" /></div>
+      <div class="field"><label>Description</label><textarea id="cDescription" rows="2"></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary">Save Category</button>
+        <button type="button" class="btn btn-ghost" id="cancelCategoryBtn">Cancel</button>
+      </div>
+      <div class="form-msg" id="categoryFormMsg" style="display:none;"></div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/admin/js/dashboard.js"></script>
+</body>
+</html>

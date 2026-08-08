@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact Us — SHEREBOY AFFILIATE CONCEPT</title>
+<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="page-hero">
+  <div class="container">
+    <h1>Get in Touch</h1>
+    <p>Questions about a product, a deal, or a partnership? We read every message.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container" style="max-width:640px;">
+    <div class="form-card">
+      <form id="contactForm">
+        <div class="form-row">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" required />
+        </div>
+        <div class="form-row">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+        <div class="form-row">
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" name="subject" placeholder="e.g. Question about a product" />
+        </div>
+        <div class="form-row">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Send Message</button>
+        <div class="form-msg" id="contactMsg" style="display:none;"></div>
+      </form>
+    </div>
+    <div style="margin-top:32px;text-align:center;color:var(--gray-500);font-size:0.9rem;">
+      <p>Or reach us directly on WhatsApp: <a href="https://wa.me/2347055426419" style="color:var(--royal-600);font-weight:600;">2347055426419</a></p>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="ai-widget"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/ai-widget.js"></script>
+<script src="/js/contact.js"></script>
+</body>
+</html>

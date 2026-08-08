@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Categories — SHEREBOY AFFILIATE CONCEPT</title>
+<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="page-hero">
+  <div class="container">
+    <h1>Shop by Category</h1>
+    <p>Browse everything by department — from electronics to beauty essentials.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="cat-grid" id="categoryGrid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div class="empty-state">Loading categories…</div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="ai-widget"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/ai-widget.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const grid = document.getElementById('categoryGrid');
+  try {
+    const { categories } = await API.get('/api/categories');
+    grid.innerHTML = categories.map(categoryCardHTML).join('') ||
+      '<div class="empty-state">No categories yet.</div>';
+  } catch (err) {
+    grid.innerHTML = `<div class="empty-state">Couldn't load categories: ${escapeHtml(err.message)}</div>`;
+  }
+});
+</script>
+</body>
+</html>
