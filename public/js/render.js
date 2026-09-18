@@ -1,7 +1,7 @@
 // public/js/render.js
 // Shared markup builders so product cards, category cards, and
 // testimonials look and behave the same on every page that lists them.
-// Requires icons.js to be loaded first (uses the global `icon()` helper).
+// Requires api.js (escapeHtml) and icons.js (icon()) to be loaded first.
 
 function productCardHTML(p) {
   const img = (p.images && p.images[0]) || '/images/placeholder-product.svg';
@@ -29,7 +29,7 @@ function productCardHTML(p) {
     </a>
     <div class="product-actions">
       <a href="/product-details.html?slug=${encodeURIComponent(p.slug)}" class="btn btn-ghost btn-sm btn-block">Details</a>
-      <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary btn-sm btn-block">Buy Now</a>
+      <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary btn-sm btn-block">Buy Now ${icon('external-link')}</a>
     </div>
   </div>`;
 }
@@ -40,7 +40,7 @@ function productCardHTML(p) {
 function categoryCardHTML(c) {
   return `
   <a href="/products.html?category=${encodeURIComponent(c.slug)}" class="cat-card">
-    <div class="cat-icon">${icon(c.icon || 'default')}</div>
+    <div class="cat-icon-wrap">${icon(c.icon || 'default')}</div>
     <h3>${escapeHtml(c.name)}</h3>
     <span>${c.product_count} product${c.product_count === 1 ? '' : 's'}</span>
   </a>`;
@@ -57,15 +57,5 @@ function testimonialCardHTML(t) {
   </div>`;
 }
 
-// Escapes text for safe use as both HTML content AND inside quoted
-// attributes (alt="...", title="..."). textContent/innerHTML alone
-// leaves quote characters untouched, which breaks attributes when a
-// product name/description contains one (e.g. a 12.9" screen size).
-function escapeHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+// escapeHtml is defined in api.js (loaded before this file everywhere)
+// so it's available as a shared global without duplicating it here.

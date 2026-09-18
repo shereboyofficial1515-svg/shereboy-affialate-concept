@@ -21,14 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const data = await API.post('/api/contact/message', payload);
-      msgBox.textContent = data.message;
-      msgBox.className = 'form-msg success';
-      msgBox.style.display = 'block';
+      setFormMessage(msgBox, data.message, 'success');
       form.reset();
     } catch (err) {
-      msgBox.textContent = err.message;
-      msgBox.className = 'form-msg error';
-      msgBox.style.display = 'block';
+      setFormMessage(msgBox, err.message, 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = submitLabel;

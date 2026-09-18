@@ -14,8 +14,10 @@
   --navy-800: #142A52;
   --royal-600: #1E4FD9;
   --royal-500: #2F63F2;
+  --royal-50: #EEF2FE;
   --gold-500: #D4A954;
   --gold-400: #E4C27C;
+  --gold-50: #FBF6EC;
   --white: #FFFFFF;
   --gray-50: #F4F6FA;
   --gray-100: #E7EBF3;
@@ -129,14 +131,54 @@ h3 { font-size: 1.3rem; font-weight: 700; }
 .deal-float .price-now { font-weight: 700; color: var(--royal-600); }
 .deal-float .price-was { color: var(--gray-500); text-decoration: line-through; font-size: 0.82rem; }
 
-/* ---------- Category chips ---------- */
-.cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
-.cat-card { background: var(--gray-50); border-radius: var(--radius-md); padding: 22px; text-align: center; transition: transform .15s, box-shadow .15s; border: 1px solid var(--gray-100); }
-.cat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); border-color: var(--royal-600); }
-.cat-icon { width: 40px; height: 40px; margin: 0 auto 10px; color: var(--royal-600); }
-.cat-icon svg { width: 100%; height: 100%; }
-.cat-card h3 { font-size: 1rem; margin-bottom: 4px; }
-.cat-card span { color: var(--gray-500); font-size: 0.82rem; }
+/* ---------- Category cards ---------- */
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+.cat-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 34px 20px 26px;
+  text-align: center;
+  border: 1px solid var(--gray-100);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform .32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .32s cubic-bezier(0.16, 1, 0.3, 1), border-color .2s ease;
+}
+.cat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: var(--royal-600); }
+.cat-card:active { transform: translateY(-2px); }
+
+/* Icon container: the visual focal point of the card */
+.cat-icon-wrap {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  background: linear-gradient(155deg, var(--royal-50), var(--white));
+  border: 1px solid var(--gray-100);
+  box-shadow: 0 6px 16px rgba(30, 79, 217, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  transition: transform .32s cubic-bezier(0.16, 1, 0.3, 1), background .32s ease, box-shadow .32s ease, border-color .32s ease;
+}
+.cat-card:hover .cat-icon-wrap {
+  transform: scale(1.08) rotate(-3deg);
+  background: linear-gradient(155deg, var(--royal-600), var(--royal-500));
+  border-color: var(--royal-600);
+  box-shadow: 0 12px 26px rgba(30, 79, 217, 0.3);
+}
+.cat-icon-wrap .icon { width: 40px; height: 40px; color: var(--royal-600); transition: color .32s ease; }
+.cat-card:hover .cat-icon-wrap .icon { color: var(--white); }
+
+.cat-card h3 { font-size: 1.05rem; margin-bottom: 6px; line-height: 1.3; }
+.cat-card span { color: var(--gray-500); font-size: 0.82rem; font-family: var(--font-mono); }
+
+@media (max-width: 480px) {
+  .cat-icon-wrap { width: 68px; height: 68px; border-radius: 20px; margin-bottom: 14px; }
+  .cat-icon-wrap .icon { width: 32px; height: 32px; }
+  .cat-card { padding: 26px 14px 20px; }
+}
 
 /* ---------- Product cards ---------- */
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 24px; }
@@ -199,6 +241,10 @@ footer { background: var(--navy-950); color: var(--gray-300); padding: 60px 0 24
 .toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 28px; background: var(--gray-50); padding: 16px; border-radius: var(--radius-md); }
 .toolbar-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .input, select.input { padding: 11px 16px; border-radius: 100px; border: 1px solid var(--gray-100); background: var(--white); font-size: 0.9rem; }
+.search-field { position: relative; flex: 1 1 220px; min-width: 200px; display: flex; align-items: center; }
+.search-field .search-icon { position: absolute; left: 16px; width: 16px; height: 16px; color: var(--gray-500); pointer-events: none; transition: color .2s ease; }
+.search-field .input { width: 100%; padding-left: 42px; }
+.search-field:focus-within .search-icon { color: var(--royal-600); }
 .chip-filter { padding: 8px 14px; border-radius: 100px; background: var(--white); border: 1px solid var(--gray-100); font-size: 0.85rem; font-weight: 600; color: var(--gray-500); }
 .chip-filter.active { background: var(--royal-600); color: var(--white); border-color: var(--royal-600); }
 
@@ -206,7 +252,8 @@ footer { background: var(--navy-950); color: var(--gray-300); padding: 60px 0 24
 .page-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--gray-50); font-weight: 600; font-family: var(--font-mono); font-size: 0.85rem; }
 .page-btn.active { background: var(--royal-600); color: var(--white); }
 
-.empty-state { text-align: center; padding: 60px 20px; color: var(--gray-500); }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 60px 20px; color: var(--gray-500); grid-column: 1 / -1; }
+.empty-state .icon { width: 40px; height: 40px; color: var(--gray-300); }
 
 /* ---------- Product details page ---------- */
 .pd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: flex-start; }
@@ -228,7 +275,8 @@ footer { background: var(--navy-950); color: var(--gray-300); padding: 60px 0 24
 .form-row { margin-bottom: 18px; }
 .form-row label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
 .form-row input, .form-row textarea, .form-row select { width: 100%; padding: 13px 16px; border-radius: var(--radius-sm); border: 1px solid var(--gray-300); background: var(--white); }
-.form-msg { padding: 12px 16px; border-radius: var(--radius-sm); margin-top: 14px; font-size: 0.88rem; }
+.form-msg { align-items: center; gap: 10px; padding: 12px 16px; border-radius: var(--radius-sm); margin-top: 14px; font-size: 0.88rem; line-height: 1.4; }
+.form-msg .icon { width: 18px; height: 18px; flex-shrink: 0; }
 .form-msg.success { background: #E4F6EA; color: #1C8A4B; }
 .form-msg.error { background: #FBE6E4; color: #C0362C; }
 

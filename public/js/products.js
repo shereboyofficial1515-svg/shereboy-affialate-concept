@@ -85,13 +85,13 @@ async function fetchProducts() {
   try {
     const data = await API.get(`/api/products?${params.toString()}`);
     if (!data.items.length) {
-      grid.innerHTML = '<div class="empty-state">No products match your filters. Try clearing search or category.</div>';
+      grid.innerHTML = emptyStateHTML('No products match your filters. Try clearing search or category.', 'search');
     } else {
       grid.innerHTML = data.items.map(productCardHTML).join('');
     }
     renderPagination(data.page, data.totalPages);
   } catch (err) {
-    grid.innerHTML = `<div class="empty-state">Couldn't load products: ${escapeHtml(err.message)}</div>`;
+    grid.innerHTML = emptyStateHTML(`Couldn't load products: ${err.message}`, 'warning');
   }
 }
 

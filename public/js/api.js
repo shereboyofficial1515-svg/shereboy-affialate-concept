@@ -46,3 +46,31 @@ const API = {
 function formatNaira(value) {
   return '₦' + Number(value).toLocaleString('en-NG', { maximumFractionDigits: 0 });
 }
+
+// Escapes text for safe use as both HTML content AND inside quoted
+// attributes (alt="...", title="..."). Shared by every page/script that
+// injects dynamic text into markup.
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Shared success/error notification renderer for form-msg boxes — keeps
+// every form's feedback message visually consistent (icon + text) instead
+// of each form building its own plain text string.
+function setFormMessage(box, message, type) {
+  const iconName = type === 'success' ? 'check' : 'warning';
+  box.innerHTML = `${icon(iconName)}<span>${escapeHtml(message)}</span>`;
+  box.className = `form-msg ${type}`;
+  box.style.display = 'flex';
+}
+
+// Shared empty-state markup (icon + message) for product/category grids
+// and similar lists, so "nothing here" states look consistent everywhere.
+function emptyStateHTML(message, iconName = 'inbox') {
+  return `<div class="empty-state">${icon(iconName, 'empty-state-icon')}<p>${escapeHtml(message)}</p></div>`;
+}

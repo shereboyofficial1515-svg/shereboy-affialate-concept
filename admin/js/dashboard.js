@@ -76,13 +76,13 @@ async function loadCategories() {
     renderCategoryTable(categories);
     renderCategoryDropdown(categories);
   } catch (err) {
-    document.getElementById('categoriesTableBody').innerHTML = `<tr><td colspan="5" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
+    document.getElementById('categoriesTableBody').innerHTML = `<tr><td colspan="5">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
   }
 }
 
 function renderCategoryTable(categories) {
   const body = document.getElementById('categoriesTableBody');
-  if (!categories.length) { body.innerHTML = '<tr><td colspan="5" class="empty-state">No categories yet.</td></tr>'; return; }
+  if (!categories.length) { body.innerHTML = `<tr><td colspan="5">${emptyStateHTML('No categories yet.')}</td></tr>`; return; }
   body.innerHTML = categories.map(c => `
     <tr>
       <td style="font-size:1.2rem;">${icon(c.icon || 'default')}</td>
@@ -133,9 +133,7 @@ function bindCategoryModal() {
       closeModal();
       loadCategories();
     } catch (err) {
-      msgBox.textContent = err.message;
-      msgBox.className = 'form-msg error';
-      msgBox.style.display = 'block';
+      setFormMessage(msgBox, err.message, 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = submitLabel;
@@ -175,13 +173,13 @@ async function loadProducts() {
     const { items } = await API.get('/api/products?perPage=100&sort=newest');
     renderProductsTable(items);
   } catch (err) {
-    document.getElementById('productsTableBody').innerHTML = `<tr><td colspan="6" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
+    document.getElementById('productsTableBody').innerHTML = `<tr><td colspan="6">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
   }
 }
 
 function renderProductsTable(items) {
   const body = document.getElementById('productsTableBody');
-  if (!items.length) { body.innerHTML = '<tr><td colspan="6" class="empty-state">No products yet — click "Add product" to publish your first one.</td></tr>'; return; }
+  if (!items.length) { body.innerHTML = `<tr><td colspan="6">${emptyStateHTML('No products yet — click "Add product" to publish your first one.')}</td></tr>`; return; }
   body.innerHTML = items.map(p => `
     <tr>
       <td style="display:flex;align-items:center;gap:10px;">
@@ -254,9 +252,7 @@ function bindProductModal() {
       loadProducts();
       loadOverview();
     } catch (err) {
-      msgBox.textContent = err.message;
-      msgBox.className = 'form-msg error';
-      msgBox.style.display = 'block';
+      setFormMessage(msgBox, err.message, 'error');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = submitLabel;
@@ -360,9 +356,9 @@ async function loadMessages() {
         <td>${escapeHtml(m.subject || '—')}</td>
         <td style="max-width:320px;">${escapeHtml(m.message)}</td>
         <td style="white-space:nowrap;color:var(--gray-500);font-size:0.8rem;">${new Date(m.created_at).toLocaleString()}</td>
-      </tr>`).join('') : '<tr><td colspan="4" class="empty-state">No messages yet.</td></tr>';
+      </tr>`).join('') : `<tr><td colspan="4">${emptyStateHTML('No messages yet.')}</td></tr>`;
   } catch (err) {
-    document.getElementById('messagesTableBody').innerHTML = `<tr><td colspan="4" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
+    document.getElementById('messagesTableBody').innerHTML = `<tr><td colspan="4">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
   }
 }
 
@@ -372,17 +368,10 @@ async function loadSubscribers() {
     const body = document.getElementById('subscribersTableBody');
     body.innerHTML = subscribers.length ? subscribers.map(s => `
       <tr><td>${escapeHtml(s.email)}</td><td style="color:var(--gray-500);font-size:0.8rem;">${new Date(s.created_at).toLocaleString()}</td></tr>
-    `).join('') : '<tr><td colspan="2" class="empty-state">No subscribers yet.</td></tr>';
+    `).join('') : `<tr><td colspan="2">${emptyStateHTML('No subscribers yet.')}</td></tr>`;
   } catch (err) {
-    document.getElementById('subscribersTableBody').innerHTML = `<tr><td colspan="2" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
+    document.getElementById('subscribersTableBody').innerHTML = `<tr><td colspan="2">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
   }
 }
 
-function escapeHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+// escapeHtml is defined in api.js (loaded before this file) as a shared global.

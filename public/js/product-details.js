@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const section = document.getElementById('productSection');
 
   if (!slug) {
-    section.innerHTML = '<div class="container"><div class="empty-state">No product specified.</div></div>';
+    section.innerHTML = `<div class="container">${emptyStateHTML('No product specified.', 'warning')}</div>`;
     return;
   }
 
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('relatedGrid').innerHTML = related.map(productCardHTML).join('');
     }
   } catch (err) {
-    section.innerHTML = `<div class="container"><div class="empty-state">Couldn't load this product: ${escapeHtml(err.message)}</div></div>`;
+    section.innerHTML = `<div class="container">${emptyStateHTML(`Couldn't load this product: ${err.message}`, 'warning')}</div>`;
   }
 });
 
@@ -54,7 +54,7 @@ function renderProduct(p) {
       </div>
       <p style="color:var(--gray-500);">${escapeHtml(p.description || '')}</p>
       <div style="display:flex;gap:12px;margin-top:24px;">
-        <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary">Buy Now ${icon('arrow-right')}</a>
+        <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary">Buy Now ${icon('external-link')}</a>
         <a href="/products.html" class="btn btn-ghost">${icon('arrow-left')} Back to products</a>
       </div>
       ${specRows ? `<div class="pd-specs"><h3 style="margin-bottom:12px;">Specifications</h3><table>${specRows}</table></div>` : ''}

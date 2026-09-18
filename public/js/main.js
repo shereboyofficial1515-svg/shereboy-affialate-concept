@@ -40,10 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.textContent = 'Subscribing…';
       try {
         const data = await API.post('/api/contact/subscribe', { email });
-        showMsg(msgBox, data.message, 'success');
+        setFormMessage(msgBox, data.message, 'success');
         form.reset();
       } catch (err) {
-        showMsg(msgBox, err.message, 'error');
+        setFormMessage(msgBox, err.message, 'error');
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = submitLabel;
@@ -57,11 +57,5 @@ document.addEventListener('DOMContentLoaded', () => {
     box.style.display = 'none';
     form.after(box);
     return box;
-  }
-
-  function showMsg(box, text, type) {
-    box.textContent = text;
-    box.className = `form-msg ${type}`;
-    box.style.display = 'block';
   }
 });

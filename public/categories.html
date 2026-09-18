@@ -47,9 +47,9 @@
       try {
         const { categories } = await API.get('/api/categories');
         grid.innerHTML = categories.map(categoryCardHTML).join('') ||
-          '<div class="empty-state">No categories yet.</div>';
+          emptyStateHTML('No categories yet.');
       } catch (err) {
-        grid.innerHTML = `<div class="empty-state">Couldn't load categories: ${escapeHtml(err.message)}</div>`;
+        grid.innerHTML = emptyStateHTML(`Couldn't load categories: ${err.message}`, 'warning');
       }
     });
   </script>

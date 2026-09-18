@@ -23,9 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('shereboy_admin_token', data.token);
       window.location.href = '/admin/dashboard.html';
     } catch (err) {
-      msgBox.textContent = err.message;
-      msgBox.className = 'form-msg error';
-      msgBox.style.display = 'block';
+      setFormMessage(msgBox, err.message, 'error');
       submitBtn.disabled = false;
       submitBtn.textContent = submitLabel;
     }

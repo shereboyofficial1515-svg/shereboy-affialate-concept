@@ -17,9 +17,9 @@ async function loadCategories() {
     const { categories } = await API.get('/api/categories');
     document.getElementById('statCategories').textContent = categories.length;
     grid.innerHTML = categories.slice(0, 6).map(categoryCardHTML).join('') ||
-      '<div class="empty-state">No categories yet — check back soon.</div>';
+      emptyStateHTML('No categories yet — check back soon.');
   } catch (err) {
-    grid.innerHTML = `<div class="empty-state">Couldn't load categories: ${escapeHtml(err.message)}</div>`;
+    grid.innerHTML = emptyStateHTML(`Couldn't load categories: ${err.message}`, 'warning');
   }
 }
 
@@ -29,9 +29,9 @@ async function loadFeatured() {
     const { items, total } = await API.get('/api/products?featured=true&perPage=4');
     document.getElementById('statProducts').textContent = total;
     grid.innerHTML = items.map(productCardHTML).join('') ||
-      '<div class="empty-state">No featured products yet.</div>';
+      emptyStateHTML('No featured products yet.');
   } catch (err) {
-    grid.innerHTML = `<div class="empty-state">Couldn't load products: ${escapeHtml(err.message)}</div>`;
+    grid.innerHTML = emptyStateHTML(`Couldn't load products: ${err.message}`, 'warning');
   }
 }
 
@@ -40,9 +40,9 @@ async function loadDeals() {
   try {
     const { items } = await API.get('/api/products?deal=true&perPage=4');
     grid.innerHTML = items.map(productCardHTML).join('') ||
-      '<div class="empty-state">No active deals right now — check back soon!</div>';
+      emptyStateHTML('No active deals right now — check back soon!');
   } catch (err) {
-    grid.innerHTML = `<div class="empty-state">Couldn't load deals: ${escapeHtml(err.message)}</div>`;
+    grid.innerHTML = emptyStateHTML(`Couldn't load deals: ${err.message}`, 'warning');
   }
 }
 
@@ -51,7 +51,7 @@ async function loadTestimonials() {
   try {
     const { testimonials } = await API.get('/api/testimonials');
     grid.innerHTML = testimonials.map(testimonialCardHTML).join('') ||
-      '<div class="empty-state">No testimonials yet.</div>';
+      emptyStateHTML('No testimonials yet.');
   } catch (err) {
     grid.innerHTML = '';
   }
