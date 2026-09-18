@@ -14,7 +14,7 @@ create table if not exists public.categories (
   id           bigint generated always as identity primary key,
   name         text not null unique,
   slug         text not null unique,
-  icon         text default '🛍️',
+  icon         text default 'default',
   description  text,
   created_at   timestamptz not null default now()
 );

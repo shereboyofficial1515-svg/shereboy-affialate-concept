@@ -1,5 +1,9 @@
 // public/js/home.js
+// Only the homepage has the mount points these functions target — bail
+// out immediately on every other page instead of firing needless API
+// calls and throwing on missing elements.
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!document.getElementById('homeCategoryGrid')) return;
   loadCategories();
   loadFeatured();
   loadDeals();
@@ -62,10 +66,17 @@ function loadFaqPreview() {
   ];
   wrap.innerHTML = preview.map((f, i) => `
     <div class="faq-item${i === 0 ? ' open' : ''}">
-      <div class="faq-q">${escapeHtml(f.q)} <span class="chev">⌄</span></div>
+      <div class="faq-q" role="button" tabindex="0" aria-expanded="${i === 0 ? 'true' : 'false'}">${escapeHtml(f.q)} ${icon('chevron', 'chev')}</div>
       <div class="faq-a"><p>${escapeHtml(f.a)}</p></div>
     </div>`).join('');
   wrap.querySelectorAll('.faq-q').forEach(q => {
-    q.addEventListener('click', () => q.parentElement.classList.toggle('open'));
+    const toggle = () => {
+      const isOpen = q.parentElement.classList.toggle('open');
+      q.setAttribute('aria-expanded', String(isOpen));
+    };
+    q.addEventListener('click', toggle);
+    q.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
   });
 }

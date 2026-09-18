@@ -1,0 +1,122 @@
+/* ==========================================================================
+   SHEREBOY AFFILIATE CONCEPT — Animation layer
+   Apple-style motion: soft easing curves, subtle scale/opacity/translate,
+   short durations, nothing bouncy or gimmicky. Fully respects
+   prefers-reduced-motion for accessibility.
+   Load this file AFTER style.css or admin.css.
+   ========================================================================== */
+
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);   /* Apple's signature "ease-out-expo"-like curve */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 520ms;
+}
+
+/* ---------- Global smoothing ---------- */
+a, button, .btn, .cat-card, .product-card, .testi-card, .faq-item,
+.chip-filter, .page-btn, .nav-links a, input, textarea, select,
+.tab-btn, .side-nav button {
+  transition: transform var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              background-color var(--dur-base) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out),
+              opacity var(--dur-base) var(--ease-out);
+}
+
+/* ---------- Buttons: soft press feedback ---------- */
+.btn:active, .chip-filter:active, .page-btn:active { transform: scale(0.97); }
+.btn-primary:hover, .btn-gold:hover { transform: translateY(-2px); }
+
+/* ---------- Cards: gentle lift, longer/softer than the original ---------- */
+.product-card, .cat-card, .testi-card {
+  transition: transform var(--dur-slow) var(--ease-out), box-shadow var(--dur-slow) var(--ease-out);
+}
+.product-card:hover { transform: translateY(-6px) scale(1.008); }
+.cat-card:hover { transform: translateY(-4px) scale(1.01); }
+
+/* ---------- Scroll reveal ----------
+   animate-on-scroll.js adds .reveal to sections/cards on page load, then
+   toggles .in-view via IntersectionObserver as each one enters the
+   viewport. Elements start slightly lowered + faded, then settle in. */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+.reveal.in-view { opacity: 1; transform: translateY(0); }
+
+/* Stagger children of a revealed grid (product/category grids) so cards
+   settle in one after another instead of all at once. */
+.reveal-stagger > * { transition-delay: calc(var(--stagger-index, 0) * 55ms); }
+
+/* ---------- Page load fade ---------- */
+body { animation: page-fade-in var(--dur-slow) var(--ease-out) both; }
+@keyframes page-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- Hero entrance ---------- */
+.hero-eyebrow, .hero h1, .hero p.lead, .hero-actions, .hero-stats {
+  animation: hero-rise var(--dur-slow) var(--ease-out) both;
+}
+.hero h1 { animation-delay: 60ms; }
+.hero p.lead { animation-delay: 120ms; }
+.hero-actions { animation-delay: 180ms; }
+.hero-stats { animation-delay: 240ms; }
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- FAQ accordion: smooth height animation ---------- */
+.faq-a { transition: max-height var(--dur-base) var(--ease-in-out), padding-top var(--dur-base) var(--ease-in-out); }
+.chev { transition: transform var(--dur-base) var(--ease-in-out); }
+
+/* ---------- AI chat panel: smooth open/close ---------- */
+.ai-panel {
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: scale(0.92) translateY(12px);
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  pointer-events: none;
+}
+.ai-panel.open { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
+.ai-fab { transition: transform var(--dur-base) var(--ease-out); }
+.ai-fab:hover { transform: scale(1.08) rotate(4deg); }
+.ai-msg { animation: msg-in var(--dur-base) var(--ease-out) both; }
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Admin modals: smooth scale-in ---------- */
+.modal-overlay {
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.modal-overlay:not(.open) { pointer-events: none; opacity: 0; }
+.modal-overlay.open { opacity: 1; }
+.modal {
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
+  transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+}
+.modal-overlay.open .modal { transform: scale(1) translateY(0); opacity: 1; }
+
+/* ---------- Icon sizing (used by public/js/icons.js output) ---------- */
+.icon { display: inline-flex; align-items: center; justify-content: center; width: 1em; height: 1em; line-height: 0; }
+.icon svg { width: 100%; height: 100%; display: block; }
+
+/* ---------- Respect reduced-motion preference ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+}

@@ -14,7 +14,7 @@ router.get('/:id', productController.getById);
 
 // Admin only
 router.post('/', requireAuth, upload.array('images', 8), validateProduct, productController.create);
-router.put('/:id', requireAuth, upload.array('images', 8), productController.update);
+router.put('/:id', requireAuth, upload.array('images', 8), validateProduct, productController.update);
 router.delete('/:id', requireAuth, productController.remove);
 
 module.exports = router;

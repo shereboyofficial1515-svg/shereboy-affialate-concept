@@ -2,11 +2,19 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('loginForm');
   const msgBox = document.getElementById('loginMsg');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const submitLabel = submitBtn.textContent;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (submitBtn.disabled) return;
+
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in…';
+    msgBox.style.display = 'none';
 
     try {
       const data = await API.post('/api/auth/login', { email, password });
@@ -18,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
       msgBox.textContent = err.message;
       msgBox.className = 'form-msg error';
       msgBox.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitLabel;
     }
   });
 });

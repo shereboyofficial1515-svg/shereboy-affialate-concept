@@ -56,7 +56,7 @@ const Category = {
     const slug = slugify(name, { lower: true, strict: true });
     const { data, error } = await supabaseAdmin
       .from('categories')
-      .insert({ name, slug, icon: icon || '🛍️', description: description || '' })
+      .insert({ name, slug, icon: icon || 'default', description: description || '' })
       .select()
       .single();
     throwIfError(error, 'Failed to create category');
@@ -67,7 +67,7 @@ const Category = {
     const slug = slugify(name, { lower: true, strict: true });
     const { data, error } = await supabaseAdmin
       .from('categories')
-      .update({ name, slug, icon: icon || '🛍️', description: description || '' })
+      .update({ name, slug, icon: icon || 'default', description: description || '' })
       .eq('id', id)
       .select()
       .single();

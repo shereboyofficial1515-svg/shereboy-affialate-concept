@@ -30,7 +30,7 @@ async function loadCategoryOptions() {
     categories.forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.slug;
-      opt.textContent = `${c.icon || ''} ${c.name}`.trim();
+      opt.textContent = c.name;
       if (c.slug === state.category) opt.selected = true;
       select.appendChild(opt);
     });
@@ -45,8 +45,8 @@ function bindControls() {
   const chipDeal = document.getElementById('chipDeal');
 
   search.value = state.q;
-  if (state.featured) chipFeatured.classList.add('active');
-  if (state.deal) chipDeal.classList.add('active');
+  if (state.featured) { chipFeatured.classList.add('active'); chipFeatured.setAttribute('aria-pressed', 'true'); }
+  if (state.deal) { chipDeal.classList.add('active'); chipDeal.setAttribute('aria-pressed', 'true'); }
 
   let searchTimer;
   search.addEventListener('input', () => {
@@ -60,12 +60,14 @@ function bindControls() {
   chipFeatured.addEventListener('click', () => {
     state.featured = !state.featured;
     chipFeatured.classList.toggle('active', state.featured);
+    chipFeatured.setAttribute('aria-pressed', String(state.featured));
     state.page = 1;
     fetchProducts();
   });
   chipDeal.addEventListener('click', () => {
     state.deal = !state.deal;
     chipDeal.classList.toggle('active', state.deal);
+    chipDeal.setAttribute('aria-pressed', String(state.deal));
     state.page = 1;
     fetchProducts();
   });

@@ -3,6 +3,10 @@ let allCategories = [];
 let existingImagesForEdit = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  document.querySelectorAll('[data-icon]').forEach(el => {
+    const span = el.querySelector('.icon');
+    if (span) span.innerHTML = ICONS[el.dataset.icon] || '';
+  });
   await guardSession();
   bindNav();
   bindLogout();
@@ -39,7 +43,7 @@ function bindNav() {
       const view = btn.dataset.view;
       document.querySelectorAll('main section[id^="view-"]').forEach(s => s.hidden = true);
       document.getElementById(`view-${view}`).hidden = false;
-      document.getElementById('viewTitle').textContent = btn.textContent.replace(/^\S+\s/, '');
+      document.getElementById('viewTitle').textContent = btn.dataset.label || btn.textContent.trim();
 
       if (view === 'products') loadProducts();
       if (view === 'categories') loadCategories();
@@ -81,7 +85,7 @@ function renderCategoryTable(categories) {
   if (!categories.length) { body.innerHTML = '<tr><td colspan="5" class="empty-state">No categories yet.</td></tr>'; return; }
   body.innerHTML = categories.map(c => `
     <tr>
-      <td style="font-size:1.2rem;">${c.icon || '🛍️'}</td>
+      <td style="font-size:1.2rem;">${icon(c.icon || 'default')}</td>
       <td>${escapeHtml(c.name)}</td>
       <td class="num">${c.product_count}</td>
       <td style="max-width:260px;">${escapeHtml(c.description || '—')}</td>
@@ -95,7 +99,7 @@ function renderCategoryTable(categories) {
 function renderCategoryDropdown(categories) {
   const select = document.getElementById('pCategory');
   select.innerHTML = '<option value="">Uncategorized</option>' +
-    categories.map(c => `<option value="${c.id}">${c.icon || ''} ${escapeHtml(c.name)}</option>`).join('');
+    categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 }
 
 // ---------- Category modal ----------
@@ -110,6 +114,9 @@ function bindCategoryModal() {
 
   document.getElementById('categoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn.disabled) return;
+
     const id = document.getElementById('categoryId').value;
     const payload = {
       name: document.getElementById('cName').value,
@@ -117,6 +124,9 @@ function bindCategoryModal() {
       description: document.getElementById('cDescription').value
     };
     const msgBox = document.getElementById('categoryFormMsg');
+    const submitLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
     try {
       if (id) await API.put(`/api/categories/${id}`, payload);
       else await API.post('/api/categories', payload);
@@ -126,6 +136,9 @@ function bindCategoryModal() {
       msgBox.textContent = err.message;
       msgBox.className = 'form-msg error';
       msgBox.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitLabel;
     }
   });
 }
@@ -172,7 +185,7 @@ function renderProductsTable(items) {
   body.innerHTML = items.map(p => `
     <tr>
       <td style="display:flex;align-items:center;gap:10px;">
-        <img class="table-thumb" src="${(p.images && p.images[0]) || '/images/placeholder-product.svg'}" alt="" />
+        <img class="table-thumb" src="${(p.images && p.images[0]) || '/images/placeholder-product.svg'}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />
         <span>${escapeHtml(p.name)}</span>
       </td>
       <td>${escapeHtml(p.category_name || 'Uncategorized')}</td>
@@ -208,6 +221,9 @@ function bindProductModal() {
 
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn.disabled) return;
+
     const id = document.getElementById('productId').value;
     const msgBox = document.getElementById('productFormMsg');
 
@@ -227,6 +243,10 @@ function bindProductModal() {
     const files = document.getElementById('pImages').files;
     for (let i = 0; i < files.length; i++) formData.append('images', files[i]);
 
+    const submitLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+
     try {
       if (id) await API.upload(`/api/products/${id}`, formData, 'PUT');
       else await API.upload('/api/products', formData, 'POST');
@@ -237,6 +257,9 @@ function bindProductModal() {
       msgBox.textContent = err.message;
       msgBox.className = 'form-msg error';
       msgBox.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitLabel;
     }
   });
 }
@@ -259,7 +282,7 @@ function addSpecRow(key = '', value = '') {
   row.innerHTML = `
     <input type="text" placeholder="Spec name (e.g. Battery Life)" class="spec-key" value="${escapeHtml(key)}" />
     <input type="text" placeholder="Value (e.g. 30 hours)" class="spec-value" value="${escapeHtml(value)}" />
-    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" aria-label="Remove specification">${icon('close')}</button>`;
   wrap.appendChild(row);
 }
 
@@ -307,8 +330,8 @@ function renderExistingImages() {
   const wrap = document.getElementById('existingImages');
   wrap.innerHTML = existingImagesForEdit.map((img, i) => `
     <div class="image-preview">
-      <img src="${img}" alt="" />
-      <button type="button" onclick="removeExistingImage(${i})">✕</button>
+      <img src="${img}" alt="" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />
+      <button type="button" onclick="removeExistingImage(${i})" aria-label="Remove image">${icon('close')}</button>
     </div>`).join('');
 }
 
@@ -356,7 +379,10 @@ async function loadSubscribers() {
 }
 
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

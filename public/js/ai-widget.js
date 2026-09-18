@@ -18,10 +18,17 @@ document.addEventListener('layout:ready', () => {
   fab.addEventListener('click', () => panel.classList.toggle('open'));
   closeBtn.addEventListener('click', () => panel.classList.remove('open'));
 
+  const sendBtn = form.querySelector('.ai-send');
+  let sending = false;
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = input.value.trim();
-    if (!message) return;
+    if (!message || sending) return;
+
+    sending = true;
+    input.disabled = true;
+    sendBtn.disabled = true;
 
     appendMessage(message, 'user');
     aiHistory.push({ role: 'user', text: message });
@@ -38,6 +45,10 @@ document.addEventListener('layout:ready', () => {
     } finally {
       typing.style.display = 'none';
       body.scrollTop = body.scrollHeight;
+      sending = false;
+      input.disabled = false;
+      sendBtn.disabled = false;
+      input.focus();
     }
   });
 

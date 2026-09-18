@@ -85,7 +85,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`\n🚀 SHEREBOY AFFILIATE CONCEPT running at http://localhost:${PORT}`);
+  console.log(`\nSHEREBOY AFFILIATE CONCEPT running at http://localhost:${PORT}`);
   console.log(`   Admin login: http://localhost:${PORT}/admin/login.html\n`);
 });
 

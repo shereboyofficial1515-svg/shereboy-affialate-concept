@@ -42,7 +42,7 @@ a { color: inherit; text-decoration: none; }
 .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 20% 20%, var(--navy-800), var(--navy-950) 65%); padding: 20px; }
 .login-card { background: var(--white); width: 100%; max-width: 400px; border-radius: var(--radius-lg); padding: 40px; box-shadow: var(--shadow-md); }
 .login-brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; margin-bottom: 6px; }
-.login-mark { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--gold-400), var(--gold-500)); display: flex; align-items: center; justify-content: center; color: var(--navy-950); font-weight: 800; }
+.login-mark { width: 38px; height: 38px; border-radius: 10px; display: block; flex-shrink: 0; }
 .login-sub { color: var(--gray-500); font-size: 0.88rem; margin-bottom: 28px; }
 .field { margin-bottom: 18px; }
 .field label { display: block; font-weight: 600; font-size: 0.86rem; margin-bottom: 6px; }
@@ -64,9 +64,11 @@ a { color: inherit; text-decoration: none; }
 .side-nav button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 11px 14px; border-radius: var(--radius-sm); color: var(--gray-300); font-weight: 500; font-size: 0.9rem; margin-bottom: 4px; }
 .side-nav button:hover { background: rgba(255,255,255,0.06); color: var(--white); }
 .side-nav button.active { background: var(--royal-600); color: var(--white); }
+.side-nav button .icon { width: 18px; height: 18px; flex-shrink: 0; }
 .sidebar-footer { margin-top: auto; }
-.logout-btn { color: var(--gray-300); font-size: 0.85rem; padding: 10px 14px; display: block; width: 100%; text-align: left; }
+.logout-btn { display: flex; align-items: center; gap: 10px; color: var(--gray-300); font-size: 0.85rem; padding: 10px 14px; width: 100%; text-align: left; }
 .logout-btn:hover { color: var(--white); }
+.logout-btn .icon { width: 16px; height: 16px; }
 
 .main { padding: 32px 36px; overflow-x: auto; }
 .dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
@@ -101,7 +103,9 @@ td.num { font-family: var(--font-mono); }
 .modal-overlay.open { display: flex; }
 .modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 620px; padding: 30px; }
 .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.modal-close { font-size: 1.3rem; color: var(--gray-500); }
+.modal-close { display: flex; align-items: center; justify-content: center; color: var(--gray-500); }
+.modal-close:hover { color: var(--navy-950); }
+.modal-close .icon { width: 1.1rem; height: 1.1rem; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-grid .span-2 { grid-column: 1 / -1; }
 .field textarea { resize: vertical; }
@@ -122,3 +126,7 @@ td.num { font-family: var(--font-mono); }
   .sidebar-footer { display: none; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* Generic icon sizing helper (shared with public site via icons.js output) */
+.icon { display: inline-flex; align-items: center; justify-content: center; width: 1em; height: 1em; line-height: 0; }
+.icon svg { width: 100%; height: 100%; display: block; }

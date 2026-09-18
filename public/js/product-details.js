@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function renderProduct(p) {
   document.title = `${p.name} — SHEREBOY AFFILIATE CONCEPT`;
+  const descriptionTag = document.getElementById('pageDescription');
+  if (descriptionTag) {
+    const summary = (p.description || `${p.name} — available now on SHEREBOY AFFILIATE CONCEPT.`).slice(0, 160);
+    descriptionTag.setAttribute('content', summary);
+  }
   const images = p.images && p.images.length ? p.images : ['/images/placeholder-product.svg'];
   const savings = p.discount_percent > 0 ? Math.round(p.price - p.final_price) : 0;
 
@@ -31,8 +36,8 @@ function renderProduct(p) {
   document.getElementById('productSection').innerHTML = `
   <div class="container pd-grid">
     <div>
-      <div class="pd-main-img"><img id="mainImg" src="${images[0]}" alt="${escapeHtml(p.name)}" /></div>
-      ${images.length > 1 ? `<div class="pd-thumbs">${images.map((img, i) => `<img src="${img}" class="${i === 0 ? 'active' : ''}" data-src="${img}" />`).join('')}</div>` : ''}
+      <div class="pd-main-img"><img id="mainImg" src="${images[0]}" alt="${escapeHtml(p.name)}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" /></div>
+      ${images.length > 1 ? `<div class="pd-thumbs">${images.map((img, i) => `<img src="${img}" class="${i === 0 ? 'active' : ''}" data-src="${img}" alt="${escapeHtml(p.name)} thumbnail" loading="lazy" role="button" tabindex="0" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />`).join('')}</div>` : ''}
     </div>
     <div>
       <span class="product-cat">${escapeHtml(p.category_name || 'Uncategorized')}</span>
@@ -49,18 +54,22 @@ function renderProduct(p) {
       </div>
       <p style="color:var(--gray-500);">${escapeHtml(p.description || '')}</p>
       <div style="display:flex;gap:12px;margin-top:24px;">
-        <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary">Buy Now →</a>
-        <a href="/products.html" class="btn btn-ghost">← Back to products</a>
+        <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary">Buy Now ${icon('arrow-right')}</a>
+        <a href="/products.html" class="btn btn-ghost">${icon('arrow-left')} Back to products</a>
       </div>
       ${specRows ? `<div class="pd-specs"><h3 style="margin-bottom:12px;">Specifications</h3><table>${specRows}</table></div>` : ''}
     </div>
   </div>`;
 
   document.querySelectorAll('.pd-thumbs img').forEach(thumb => {
-    thumb.addEventListener('click', () => {
+    const select = () => {
       document.getElementById('mainImg').src = thumb.dataset.src;
       document.querySelectorAll('.pd-thumbs img').forEach(t => t.classList.remove('active'));
       thumb.classList.add('active');
+    };
+    thumb.addEventListener('click', select);
+    thumb.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(); }
     });
   });
 }

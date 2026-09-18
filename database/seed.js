@@ -34,18 +34,18 @@ async function seed() {
       user_metadata: { name: 'SHEREBOY Admin' }
     });
     if (createErr) throw new Error(`Failed to create admin user: ${createErr.message}`);
-    console.log(`✅ Admin account created: ${adminEmail}`);
+    console.log(`Admin account created: ${adminEmail}`);
   } else {
-    console.log('ℹ️  Admin account already exists — skipping.');
+    console.log('Admin account already exists — skipping.');
   }
 
   // ---- Categories ----
   const categoryData = [
-    { name: 'Electronics', icon: '🎧', description: 'Gadgets, audio, and smart devices.' },
-    { name: 'Home & Kitchen', icon: '🏠', description: 'Everyday essentials for the home.' },
-    { name: 'Fashion', icon: '👗', description: 'Apparel, shoes, and accessories.' },
-    { name: 'Beauty & Personal Care', icon: '💄', description: 'Skincare, haircare, and grooming.' },
-    { name: 'Phones & Accessories', icon: '📱', description: 'Phones, cases, chargers, and more.' }
+    { name: 'Electronics', icon: 'electronics', description: 'Gadgets, audio, and smart devices.' },
+    { name: 'Home & Kitchen', icon: 'home', description: 'Everyday essentials for the home.' },
+    { name: 'Fashion', icon: 'fashion', description: 'Apparel, shoes, and accessories.' },
+    { name: 'Beauty & Personal Care', icon: 'beauty', description: 'Skincare, haircare, and grooming.' },
+    { name: 'Phones & Accessories', icon: 'phone', description: 'Phones, cases, chargers, and more.' }
   ];
 
   const categoryIds = {};
@@ -64,7 +64,7 @@ async function seed() {
       categoryIds[c.name] = inserted.id;
     }
   }
-  console.log(`✅ Categories ready (${categoryData.length})`);
+  console.log(`Categories ready (${categoryData.length})`);
 
   // ---- Sample products (only if none exist yet) ----
   const { count: existingCount, error: countErr } = await supabaseAdmin
@@ -154,9 +154,9 @@ async function seed() {
       });
       if (error) throw new Error(`Failed to create product "${p.name}": ${error.message}`);
     }
-    console.log(`✅ Sample products created (${sampleProducts.length})`);
+    console.log(`Sample products created (${sampleProducts.length})`);
   } else {
-    console.log('ℹ️  Products already exist — skipping sample data.');
+    console.log('Products already exist — skipping sample data.');
   }
 
   // ---- Testimonials ----
@@ -173,13 +173,13 @@ async function seed() {
     ];
     const { error } = await supabaseAdmin.from('testimonials').insert(testimonials);
     if (error) throw new Error(`Failed to create testimonials: ${error.message}`);
-    console.log(`✅ Testimonials created (${testimonials.length})`);
+    console.log(`Testimonials created (${testimonials.length})`);
   }
 
-  console.log('\n🎉 Seeding complete!\n');
+  console.log('\nSeeding complete!\n');
 }
 
 seed().catch(err => {
-  console.error('❌ Seed failed:', err.message);
+  console.error('Seed failed:', err.message);
   process.exit(1);
 });

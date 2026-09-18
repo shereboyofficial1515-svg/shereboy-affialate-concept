@@ -1,6 +1,7 @@
 // public/js/render.js
-// Shared markup builders so product cards and category cards look and
-// behave the same on every page that lists them.
+// Shared markup builders so product cards, category cards, and
+// testimonials look and behave the same on every page that lists them.
+// Requires icons.js to be loaded first (uses the global `icon()` helper).
 
 function productCardHTML(p) {
   const img = (p.images && p.images[0]) || '/images/placeholder-product.svg';
@@ -9,7 +10,7 @@ function productCardHTML(p) {
   <div class="product-card">
     <a href="/product-details.html?slug=${encodeURIComponent(p.slug)}">
       <div class="product-thumb">
-        <img src="${img}" alt="${escapeHtml(p.name)}" loading="lazy" />
+        <img src="${img}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />
         <div class="badge-row">
           ${p.is_featured ? '<span class="badge badge-featured">Featured</span>' : ''}
           ${p.is_deal ? '<span class="badge badge-deal">Deal</span>' : ''}
@@ -33,26 +34,38 @@ function productCardHTML(p) {
   </div>`;
 }
 
+// Category `icon` values are now short keywords (e.g. "electronics",
+// "home") stored in the database, looked up against ICONS in icons.js —
+// not raw emoji characters like earlier versions of this site used.
 function categoryCardHTML(c) {
   return `
   <a href="/products.html?category=${encodeURIComponent(c.slug)}" class="cat-card">
-    <div class="cat-icon">${c.icon || '🛍️'}</div>
+    <div class="cat-icon">${icon(c.icon || 'default')}</div>
     <h3>${escapeHtml(c.name)}</h3>
     <span>${c.product_count} product${c.product_count === 1 ? '' : 's'}</span>
   </a>`;
 }
 
 function testimonialCardHTML(t) {
+  const filled = Array.from({ length: t.rating }, () => icon('star', 'star-filled')).join('');
+  const empty = Array.from({ length: 5 - t.rating }, () => icon('star', 'star-empty')).join('');
   return `
   <div class="testi-card">
-    <div class="testi-stars">${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}</div>
+    <div class="testi-stars">${filled}${empty}</div>
     <p>"${escapeHtml(t.quote)}"</p>
     <div class="testi-name">${escapeHtml(t.customer_name)}</div>
   </div>`;
 }
 
+// Escapes text for safe use as both HTML content AND inside quoted
+// attributes (alt="...", title="..."). textContent/innerHTML alone
+// leaves quote characters untouched, which breaks attributes when a
+// product name/description contains one (e.g. a 12.9" screen size).
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

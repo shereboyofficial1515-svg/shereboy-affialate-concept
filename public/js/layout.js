@@ -8,7 +8,8 @@ const NAVBAR_HTML = `
 <nav class="navbar">
   <div class="nav-inner">
     <a href="/index.html" class="brand">
-      <span class="brand-mark">S</span> SHEREBOY <span style="color:#D4A954">Affiliate</span>
+      <img src="/images/logo-mark.svg" alt="SHEREBOY" class="brand-mark" />
+      SHEREBOY <span style="color:#D4A954">Affiliate</span>
     </a>
     <ul class="nav-links">
       <li><a href="/index.html">Home</a></li>
@@ -20,7 +21,9 @@ const NAVBAR_HTML = `
     </ul>
     <div class="nav-cta">
       <a href="/products.html" class="btn btn-gold btn-sm">Shop Deals</a>
-      <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span class="icon">${ICONS.menu}</span>
+      </button>
     </div>
   </div>
 </nav>`;
@@ -31,16 +34,17 @@ const FOOTER_HTML = `
     <div class="footer-grid">
       <div>
         <a href="/index.html" class="brand" style="margin-bottom:14px;">
-          <span class="brand-mark">S</span> SHEREBOY <span style="color:#D4A954">Affiliate</span>
+          <img src="/images/logo-mark.svg" alt="SHEREBOY" class="brand-mark" />
+          SHEREBOY <span style="color:#D4A954">Affiliate</span>
         </a>
         <p style="font-size:0.85rem; max-width:280px; margin-top:10px;">
           Curated deals across electronics, home, fashion, beauty, and phone accessories —
           picked, tested by eye, and explained honestly before you click "buy."
         </p>
         <div class="footer-social">
-          <a href="https://tiktok.com/@shereboy" target="_blank" rel="noopener" aria-label="TikTok">TT</a>
-          <a href="https://youtube.com/@shereboy1379" target="_blank" rel="noopener" aria-label="YouTube">YT</a>
-          <a href="https://wa.me/2347055426419" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
+          <a href="https://tiktok.com/@shereboy" target="_blank" rel="noopener" aria-label="TikTok">${icon('tiktok')}</a>
+          <a href="https://youtube.com/@shereboy1379" target="_blank" rel="noopener" aria-label="YouTube">${icon('youtube')}</a>
+          <a href="https://wa.me/2347055426419" target="_blank" rel="noopener" aria-label="WhatsApp">${icon('whatsapp')}</a>
         </div>
       </div>
       <div>
@@ -56,9 +60,9 @@ const FOOTER_HTML = `
         <a href="/faq.html">FAQ</a>
       </div>
       <div>
-      <h4>Legal</h4>
-      <a href="/privacy.html">Privacy Policy</a>
-      <a href="/terms.html">Terms &amp; Conditions</a>
+        <h4>Legal</h4>
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms &amp; Conditions</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -69,11 +73,11 @@ const FOOTER_HTML = `
 </footer>`;
 
 const AI_WIDGET_HTML = `
-<button class="ai-fab" id="aiFab" aria-label="Open shopping assistant">💬</button>
+<button class="ai-fab" id="aiFab" aria-label="Open shopping assistant">${icon('chat')}</button>
 <div class="ai-panel" id="aiPanel">
   <div class="ai-head">
-    <div class="ai-head-title">🤖 Deal Assistant</div>
-    <button id="aiClose" style="color:#fff;font-size:1.1rem;" aria-label="Close">✕</button>
+    <div class="ai-head-title">${icon('sparkle')} Deal Assistant</div>
+    <button id="aiClose" aria-label="Close">${icon('close')}</button>
   </div>
   <div class="ai-body" id="aiBody">
     <div class="ai-msg bot">Hi! I'm your shopping assistant. Ask me about products, prices, or which deal fits your budget.</div>
@@ -81,7 +85,7 @@ const AI_WIDGET_HTML = `
   <div class="ai-typing" id="aiTyping" style="display:none;">Assistant is typing…</div>
   <form class="ai-input-row" id="aiForm">
     <input type="text" id="aiInput" placeholder="Ask about a product…" autocomplete="off" required />
-    <button type="submit" class="ai-send" aria-label="Send">➤</button>
+    <button type="submit" class="ai-send" aria-label="Send">${icon('send')}</button>
   </form>
 </div>`;
 

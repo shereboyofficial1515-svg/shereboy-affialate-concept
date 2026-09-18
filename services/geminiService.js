@@ -3,13 +3,14 @@
 // the website's own product catalog and FAQ as its primary knowledge
 // source, and is explicit whenever it doesn't know something.
 //
-// Model note: use "gemini-2.5-flash" (or newer). The older
-// "gemini-1.5-flash" alias has been retired by Google and will fail.
+// Model note: use "gemini-3.6-flash" (or newer). Google has retired both
+// "gemini-1.5-flash" and "gemini-2.5-flash" — requests to those now fail
+// with a 404 telling callers to move to gemini-3.6-flash.
 
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const FAQ_CONTEXT = `

@@ -1,39 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title id="pageTitle">Product Details — SHEREBOY AFFILIATE CONCEPT</title>
-<link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
-<link rel="stylesheet" href="/css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Product Details — SHEREBOY AFFILIATE CONCEPT</title>
+  <meta id="pageDescription" name="description" content="Product details, pricing, and specifications on SHEREBOY AFFILIATE CONCEPT." />
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/animations.css" />
 </head>
+
 <body>
 
-<div id="site-header"></div>
+  <div id="site-header"></div>
 
-<section class="section" id="productSection">
-  <div class="container">
-    <div class="empty-state">Loading product…</div>
-  </div>
-</section>
-
-<section class="section" style="background:var(--gray-50);" id="relatedSection" hidden>
-  <div class="container">
-    <div class="section-head">
-      <div><span class="eyebrow">You might also like</span><h2>Related products</h2></div>
+  <section class="section" id="productSection">
+    <div class="container">
+      <div class="empty-state">Loading product…</div>
     </div>
-    <div class="product-grid" id="relatedGrid"></div>
-  </div>
-</section>
+  </section>
 
-<div id="site-footer"></div>
-<div id="ai-widget"></div>
+  <section class="section" style="background:var(--gray-50);" id="relatedSection" hidden>
+    <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">You might also like</span>
+          <h2>Related products</h2>
+        </div>
+      </div>
+      <div class="product-grid" id="relatedGrid"></div>
+    </div>
+  </section>
 
-<script src="/js/api.js"></script>
-<script src="/js/render.js"></script>
-<script src="/js/layout.js"></script>
-<script src="/js/main.js"></script>
-<script src="/js/ai-widget.js"></script>
-<script src="/js/product-details.js"></script>
+  <div id="site-footer"></div>
+  <div id="ai-widget"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/render.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/ai-widget.js"></script>
+  <script src="/js/home.js"></script>
+  <script src="/js/product-details.js"></script>
+  <script src="/js/animate-on-scroll.js"></script>
 </body>
+
 </html>

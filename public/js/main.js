@@ -7,8 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
   if (toggle && links) {
-    toggle.addEventListener('click', () => links.classList.toggle('open'));
-    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+    toggle.addEventListener('click', () => {
+      const isOpen = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(isOpen));
+    });
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      links.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }));
   }
 
   // Highlight current page in nav
@@ -22,16 +28,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Newsletter subscribe form (appears on multiple pages)
   document.querySelectorAll('.newsletter-form').forEach(form => {
+    const submitBtn = form.querySelector('button[type="submit"]');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (submitBtn.disabled) return;
+
       const email = form.querySelector('input[type="email"]').value;
       const msgBox = form.parentElement.querySelector('.form-msg') || createMsgBox(form);
+      const submitLabel = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Subscribing…';
       try {
         const data = await API.post('/api/contact/subscribe', { email });
         showMsg(msgBox, data.message, 'success');
         form.reset();
       } catch (err) {
         showMsg(msgBox, err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = submitLabel;
       }
     });
   });

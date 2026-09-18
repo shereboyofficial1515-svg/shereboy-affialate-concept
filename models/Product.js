@@ -10,6 +10,15 @@ function throwIfError(error, context) {
   if (error) throw new Error(`${context}: ${error.message}`);
 }
 
+// PostgREST's .or() filter string uses "," to separate conditions and
+// "()" for grouping, so a raw search term containing them could alter
+// the filter's structure instead of just being matched against. Strip
+// those characters (search results are unaffected — they're not
+// meaningful search input anyway).
+function sanitizeSearchTerm(term) {
+  return term.replace(/[,()%]/g, ' ').trim();
+}
+
 // Flattens the nested `category` join into category_name/category_slug
 // (matching the shape the frontend already expects) and derives final_price.
 // Postgres jsonb columns (images/specifications) already come back as real
@@ -61,7 +70,10 @@ const Product = {
 
     let query = supabaseAdmin.from('products').select(selectCols, { count: 'exact' });
 
-    if (q) query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
+    if (q) {
+      const term = sanitizeSearchTerm(q);
+      if (term) query = query.or(`name.ilike.%${term}%,description.ilike.%${term}%`);
+    }
     if (category) query = query.eq('category.slug', category);
     if (featuredOnly) query = query.eq('is_featured', true);
     if (dealOnly) query = query.eq('is_deal', true);

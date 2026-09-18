@@ -2,16 +2,23 @@
 // Tiny fetch wrapper shared by every page so we don't repeat
 // error-handling and JSON parsing logic everywhere.
 
+const NETWORK_ERROR_MESSAGE = "Couldn't reach the server. Please check your connection and try again.";
+
 const API = {
   async request(url, options = {}) {
-    const res = await fetch(url, {
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-      ...options
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        ...options
+      });
+    } catch (err) {
+      throw new Error(NETWORK_ERROR_MESSAGE);
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const message = data.message || (data.errors && data.errors.join(' ')) || 'Something went wrong.';
+      const message = data.message || (data.errors && data.errors.join(' ')) || 'Something went wrong. Please try again.';
       throw new Error(message);
     }
     return data;
@@ -24,9 +31,14 @@ const API = {
 
   // For multipart form data (product image uploads) — no JSON content-type.
   async upload(url, formData, method = 'POST') {
-    const res = await fetch(url, { method, credentials: 'include', body: formData });
+    let res;
+    try {
+      res = await fetch(url, { method, credentials: 'include', body: formData });
+    } catch (err) {
+      throw new Error(NETWORK_ERROR_MESSAGE);
+    }
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.message || (data.errors && data.errors.join(' ')) || 'Upload failed.');
+    if (!res.ok) throw new Error(data.message || (data.errors && data.errors.join(' ')) || 'Upload failed. Please try again.');
     return data;
   }
 };
