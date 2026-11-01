@@ -30,10 +30,11 @@ cp .env.example .env
 
 1. Create a project at [supabase.com](https://supabase.com) (or use an existing one).
 2. Open **SQL Editor** in your Supabase dashboard, paste the contents of
-   `database/schema.sql`, and run it. This creates the `categories`,
-   `products`, `testimonials`, `subscribers`, and `contact_messages` tables
-   (there's intentionally no `users` table — admin accounts are managed by
-   Supabase Auth's built-in `auth.users`).
+   `database/schema.sql`, and run it. Then run each file in
+   `database/migrations/` in order. This creates the `categories`, `products`,
+   `testimonials`, `subscribers`, `contact_messages`, `email_campaigns`,
+   `email_logs` and `product_clicks` tables (there's intentionally no `users`
+   table — admin accounts are managed by Supabase Auth's built-in `auth.users`).
 3. Go to **Project Settings → API** and copy:
    - **Project URL** → `SUPABASE_URL`
    - **anon public key** → `SUPABASE_ANON_KEY`
@@ -71,8 +72,12 @@ Everything is managed from **Admin → Products** and **Admin → Categories**:
   `/index.html`) immediately — no HTML files to touch.
 - **Categories**: add/edit/delete; deleting a category doesn't delete its
   products, they simply become "Uncategorized."
-- **Messages / Subscribers**: view everything submitted through the Contact
-  form and newsletter signup.
+- **Messages**: view everything submitted through the Contact form.
+- **Subscribers / Campaigns / Send log**: see section 4c.
+- **Testimonials**: add real customer quotes. The homepage section stays hidden
+  while none are published.
+- **Verified deal** and **rating** on a product are only shown when you set them.
+  Leave them empty unless you have really checked the deal or have real rating data.
 
 ## 4. The AI shopping assistant
 
@@ -125,6 +130,53 @@ images were written to `public/uploads` on the server's disk, which hosts such a
 every deploy — products uploaded that way lost their images and need them re-uploaded once from
 the dashboard.
 
+If products are left with dead `/uploads/...` paths, `npm run recover-images` previews restoring
+each one from its own affiliate listing (nothing changes until you add `-- --apply`, which first
+writes a backup to `backups/`). A product whose listing can't be read or whose title doesn't match
+is left alone and reported, so it can be uploaded by hand.
+
+New uploads are converted on the server to WebP (1200px, plus a 480px copy for phones) and a 480px
+JPEG for email clients.
+
+## 4c. Newsletter and email (Resend)
+
+Signups use double opt-in: nobody receives marketing email until they click the link sent to their
+own address. Every marketing email has an unsubscribe link and a one-click `List-Unsubscribe`
+header. The API key stays on the server.
+
+**Connect Resend (needed once):**
+
+1. Create an account at [resend.com](https://resend.com) and an API key. Set `RESEND_API_KEY`.
+2. In Resend → **Domains**, add `shereboyaffiliateconcept.shop`, then add the SPF and DKIM records it
+   shows you to your DNS (Cloudflare). Wait until the domain shows **Verified**.
+3. Add a DMARC record in DNS: `_dmarc` TXT `v=DMARC1; p=none; rua=mailto:you@yourdomain`.
+4. Set `EMAIL_FROM`, e.g. `SHEREBOY AFFILIATE CONCEPT <deals@shereboyaffiliateconcept.shop>`.
+5. In Resend → **Webhooks**, add `https://shereboyaffiliateconcept.shop/api/email/webhook` with all
+   `email.*` events, and set `RESEND_WEBHOOK_SECRET` to its signing secret. This powers delivery
+   statistics and stops mail to addresses that bounce or complain.
+6. Set `EMAIL_POSTAL_ADDRESS` to your real business address.
+
+**Dashboard:**
+
+- **Subscribers**: search, filter by status, send a confirmation, unsubscribe, delete. Subscribers from
+  before this system start as *pending*; use **Ask all pending to confirm** once.
+- **Campaigns**: write a campaign, choose products, send yourself a test, then send to all confirmed
+  subscribers. **Weekly newsletter** pre-fills a draft from the last 7 days' products and the biggest
+  savings for you to review and send. It's a button, not a schedule: nothing goes out by itself.
+- **Send log**: every attempt, with the reason for any failure.
+
+If sending is interrupted (a restart or deploy), **Resume** continues without emailing anyone twice.
+
+## 4d. Tests and local preview
+
+```bash
+npm test          # runs against an in-memory database and a mock Resend server
+npm run preview   # the full site on http://localhost:3100, with no real data or email
+```
+
+In the preview, `/__preview/login` signs in to the dashboard and `/__preview/emails` lists what would
+have been sent. Neither exists in production.
+
 ## 5. Project structure
 
 ```
@@ -145,6 +197,10 @@ the dashboard.
 ├── models/                # Data-access layer (Category, Product) via Supabase
 ├── config/supabase.js     # Supabase client setup (anon + service-role clients)
 ├── services/geminiService.js  # Gemini API integration
+├── services/imageStorage.js   # Image optimization and Supabase Storage
+├── services/email/            # Resend client, templates, subscriptions, campaign sender
+├── scripts/recover-product-images.js
+├── test/                      # npm test, plus the local preview server
 ├── utils/asyncHandler.js
 ├── .env.example
 ├── server.js
@@ -173,9 +229,6 @@ the dashboard.
 - Put the app behind HTTPS (e.g. via your host or a reverse proxy)
 - Rotate your Supabase `service_role` key immediately if it's ever
   accidentally exposed (client-side code, a public repo, etc.)
-- Consider adding a Content-Security-Policy tailored to your CDN usage
-  (Helmet's CSP is disabled by default here to avoid breaking Google Fonts —
-  tighten it once you know your final asset origins)
 
 ## 7. Deployment instructions
 
@@ -192,10 +245,7 @@ the dashboard.
 4. If you haven't already, run `database/schema.sql` in your Supabase SQL
    Editor and `npm run seed` once (locally, or via the host's console/SSH)
    to create your admin account and sample data.
-5. Uploaded product images are still written to `public/uploads/` on the
-   server's local disk — on hosts with an **ephemeral filesystem**, mount a
-   persistent volume for that folder, or images will disappear on redeploy.
-   (Product/category/testimonial *data* itself is always safe in Supabase.)
+5. Uploaded product images go to Supabase Storage, so they survive redeploys.
 6. Point your domain at the host, and confirm `/admin/login.html` is reachable
    only over HTTPS in production.
 
@@ -207,7 +257,6 @@ Running `npm run seed` adds:
   Phones & Accessories)
 - 6 sample products with placeholder affiliate links (replace these with
   real links before going live)
-- 3 sample testimonials
 
 ---
 

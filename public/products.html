@@ -6,19 +6,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>All Products — SHEREBOY AFFILIATE CONCEPT</title>
   <meta name="description" content="Search and filter our full catalog of curated affiliate deals." />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#0B2A2F" />
+  <meta property="og:site_name" content="SHEREBOY AFFILIATE CONCEPT" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="All Products — SHEREBOY AFFILIATE CONCEPT" />
+  <meta property="og:url" content="https://shereboyaffiliateconcept.shop/products.html" />
+  <meta property="og:description" content="Search and filter our full catalog of curated affiliate deals." />
+  <meta property="og:image" content="https://shereboyaffiliateconcept.shop/images/brand/og-default.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://shereboyaffiliateconcept.shop/images/brand/og-default.png" />
+  <link rel="preload" href="/fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/animations.css" />
+  <link rel="canonical" href="https://shereboyaffiliateconcept.shop/products.html" />
 </head>
 
 <body>
 
+  <a class="skip-link" href="#main">Skip to content</a>
   <div id="site-header"></div>
+
+  <main id="main">
 
   <section class="page-hero">
     <div class="container">
       <h1>All Products</h1>
-      <p>Search, filter, and compare — every item here has been reviewed before it's listed.</p>
+      <p>Search, filter, and compare everything we've picked.</p>
     </div>
   </section>
 
@@ -37,22 +54,24 @@
             <option value="newest">Newest</option>
             <option value="price_asc">Price: Low to High</option>
             <option value="price_desc">Price: High to Low</option>
+            <option value="discount_desc">Biggest discount</option>
             <option value="name_asc">Name: A–Z</option>
           </select>
         </div>
         <div class="toolbar-group">
-          <button class="chip-filter" id="chipFeatured" aria-pressed="false">Featured</button>
-          <button class="chip-filter" id="chipDeal" aria-pressed="false">On Deal</button>
+          <button type="button" class="chip-filter" id="chipFeatured" aria-pressed="false">Featured</button>
+          <button type="button" class="chip-filter" id="chipDeal" aria-pressed="false">On Deal</button>
         </div>
       </div>
 
-      <div class="product-grid" id="productGrid">
-        <div class="empty-state">Loading products…</div>
-      </div>
+      <p class="result-count" id="resultCount" role="status"></p>
+      <div class="product-grid" id="productGrid"></div>
 
       <div class="pagination" id="pagination"></div>
     </div>
   </section>
+
+  </main>
 
   <div id="site-footer"></div>
   <div id="ai-widget"></div>
@@ -63,9 +82,7 @@
   <script src="/js/layout.js"></script>
   <script src="/js/main.js"></script>
   <script src="/js/ai-widget.js"></script>
-  <script src="/js/home.js"></script>
   <script src="/js/products.js"></script>
-  <script src="/js/animate-on-scroll.js"></script>
 </body>
 
 </html>

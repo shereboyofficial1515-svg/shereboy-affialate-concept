@@ -1,10 +1,10 @@
 // public/js/faq-page.js
 const FAQS = [
-  { q: 'How do affiliate links work on this site?', a: 'When you click "Buy Now" or "View Deal," you\'re taken to the retailer\'s site through our affiliate link. We may earn a small commission on qualifying purchases — at no extra cost to you.' },
+  { q: 'How do affiliate links work on this site?', a: 'When you click "View Deal," you\'re taken to the retailer\'s site through our affiliate link. We may earn a small commission on qualifying purchases — at no extra cost to you.' },
   { q: 'Are the prices shown always accurate?', a: 'We update prices regularly, but the retailer\'s page is the final source of truth for price and availability at checkout.' },
   { q: 'Do you sell products directly?', a: 'No — we don\'t handle payments, shipping, or returns. All purchases happen on the retailer\'s website after you click through.' },
   { q: 'How does the AI shopping assistant work?', a: 'The assistant (powered by Google Gemini) answers questions using our own product catalog and FAQ as its source of truth. If it doesn\'t know something, it will tell you rather than guess.' },
-  { q: 'How do I know if a deal is genuine?', a: 'We manually review every product before listing it, and only use the "Deal" badge when there\'s a real, verifiable discount.' },
+  { q: 'How do I know if a deal is genuine?', a: 'Our team adds every product by hand. A discount is only shown when we\'ve recorded one, and the "Verified deal" label only appears on deals we have personally checked. Always confirm the final price on the retailer\'s page.' },
   { q: 'Can I suggest a product to be added?', a: 'Yes! Use the Contact page to send a suggestion — we review submissions regularly.' },
   { q: 'How do I reach customer support?', a: 'The fastest way is WhatsApp at 2347055426419, or the Contact form — we reply within 1-2 business days.' },
   { q: 'Is my personal information safe?', a: 'Yes. We only collect what\'s needed to respond to you (name, email, message) and never sell your data. See our Privacy Policy for details.' }

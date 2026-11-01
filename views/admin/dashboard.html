@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — SHEREBOY Admin</title>
   <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/admin/css/admin.css" />
 </head>
@@ -14,7 +15,7 @@
 
   <div class="dash">
     <aside class="sidebar">
-      <div class="brand"><img src="/images/logo-mark.svg" alt="SHEREBOY" class="login-mark" /> SHEREBOY Admin</div>
+      <a class="brand" href="/" title="View the live site"><img src="/images/brand/logo-horizontal-dark-bg.svg" alt="SHEREBOY AFFILIATE CONCEPT" /></a>
       <nav class="side-nav">
         <button data-view="overview" data-label="Overview" data-icon="overview" class="active"><span
             class="icon"></span> Overview</button>
@@ -26,6 +27,12 @@
           Messages</button>
         <button data-view="subscribers" data-label="Subscribers" data-icon="subscribers"><span class="icon"></span>
           Subscribers</button>
+        <button data-view="campaigns" data-label="Email campaigns" data-icon="campaigns"><span class="icon"></span>
+          Campaigns</button>
+        <button data-view="logs" data-label="Email send log" data-icon="inbox"><span class="icon"></span>
+          Send log</button>
+        <button data-view="testimonials" data-label="Testimonials" data-icon="testimonials"><span class="icon"></span>
+          Testimonials</button>
       </nav>
       <div class="sidebar-footer">
         <button class="logout-btn" id="logoutBtn" data-icon="logout"><span class="icon"></span> Log out</button>
@@ -40,6 +47,7 @@
 
       <!-- Overview -->
       <section id="view-overview">
+        <div class="alert" id="missingImagesAlert" hidden></div>
         <div class="stat-grid" id="statGrid">
           <div class="stat-card"><b>--</b><span>Total products</span></div>
           <div class="stat-card"><b>--</b><span>Categories</span></div>
@@ -133,21 +141,126 @@
 
       <!-- Subscribers -->
       <section id="view-subscribers" hidden>
+        <div class="alert" id="subscriberBanner" hidden></div>
+        <div class="stat-grid" id="subscriberStats"></div>
+        <div class="filter-bar">
+          <input type="search" id="subscriberSearch" class="input" placeholder="Search by email" aria-label="Search subscribers" />
+          <select id="subscriberStatus" class="input" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="pending">Pending</option>
+            <option value="unsubscribed">Unsubscribed</option>
+            <option value="bounced">Bounced</option>
+            <option value="complained">Complained</option>
+          </select>
+          <span id="subscriberTotal" class="muted-cell"></span>
+          <button class="btn btn-ghost btn-sm" id="confirmAllBtn" style="margin-left:auto;" hidden>Ask all pending to confirm</button>
+        </div>
         <div class="panel" style="padding:0;overflow-x:auto;">
           <table>
             <thead>
               <tr>
                 <th>Email</th>
+                <th>Status</th>
+                <th>Source</th>
                 <th>Subscribed</th>
+                <th>Confirmed</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="subscribersTableBody">
               <tr>
-                <td colspan="2" class="empty-state">Loading…</td>
+                <td colspan="6" class="empty-state">Loading…</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <div id="subscriberPager"></div>
+      </section>
+
+      <!-- Campaigns -->
+      <section id="view-campaigns" hidden>
+        <div class="alert" id="campaignBanner" hidden></div>
+        <div class="panel-head" style="margin-bottom:16px;">
+          <h3>Campaigns</h3>
+          <div class="row-actions">
+            <button class="btn btn-ghost btn-sm" id="weeklyCampaignBtn">Weekly newsletter</button>
+            <button class="btn btn-primary btn-sm" id="newCampaignBtn" data-icon="plus"><span class="icon"></span> New campaign</button>
+          </div>
+        </div>
+        <div class="panel" style="padding:0;overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Status</th>
+                <th>Sent</th>
+                <th>Delivered</th>
+                <th>Opened</th>
+                <th>Clicked</th>
+                <th>Problems</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="campaignsTableBody">
+              <tr>
+                <td colspan="8" class="empty-state">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted-cell" style="margin-top:12px;">Campaigns go only to confirmed subscribers, and every email has a working unsubscribe link. Opens and clicks are estimates: some mail apps block tracking.</p>
+      </section>
+
+      <!-- Send log -->
+      <section id="view-logs" hidden>
+        <div class="panel" style="padding:0;overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>To</th>
+                <th>Type</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="logsTableBody">
+              <tr>
+                <td colspan="6" class="empty-state">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="logPager"></div>
+      </section>
+
+      <!-- Testimonials -->
+      <section id="view-testimonials" hidden>
+        <div class="panel-head" style="margin-bottom:16px;">
+          <h3>Testimonials</h3>
+          <button class="btn btn-primary btn-sm" id="addTestimonialBtn" data-icon="plus"><span class="icon"></span> Add testimonial</button>
+        </div>
+        <div class="panel" style="padding:0;overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Quote</th>
+                <th>Rating</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="testimonialsTableBody">
+              <tr>
+                <td colspan="5" class="empty-state">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted-cell" style="margin-top:12px;">Only add what real customers actually said. Published testimonials appear on the homepage; the section stays hidden while there are none.</p>
       </section>
     </main>
   </div>
@@ -194,11 +307,21 @@
             <label>Affiliate link</label>
             <input type="url" id="pLink" placeholder="https://…" required />
           </div>
+          <div class="field">
+            <label for="pRating">Rating (0-5), optional</label>
+            <input type="number" id="pRating" min="0" max="5" step="0.1" placeholder="Leave empty if unknown" />
+          </div>
+          <div class="field">
+            <label for="pRatingCount">Number of ratings</label>
+            <input type="number" id="pRatingCount" min="0" step="1" placeholder="From the retailer's page" />
+          </div>
           <div class="field span-2">
             <div class="checkbox-row"><input type="checkbox" id="pFeatured" /><label for="pFeatured"
                 style="margin:0;">Mark as Featured</label></div>
             <div class="checkbox-row" style="margin-top:8px;"><input type="checkbox" id="pDeal" /><label for="pDeal"
                 style="margin:0;">Mark as Deal</label></div>
+            <div class="checkbox-row" style="margin-top:8px;"><input type="checkbox" id="pVerified" /><label for="pVerified"
+                style="margin:0;">Verified deal: I checked this price and discount on the retailer's page</label></div>
           </div>
 
           <div class="field span-2">
@@ -254,9 +377,83 @@
     </div>
   </div>
 
+  <!-- Campaign modal -->
+  <div class="modal-overlay" id="campaignModalOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="campaignModalTitle">New campaign</h3>
+        <button class="modal-close" id="campaignModalClose" data-icon="close" aria-label="Close"><span class="icon"></span></button>
+      </div>
+      <form id="campaignForm">
+        <input type="hidden" id="campaignId" />
+        <div class="form-grid">
+          <div class="field">
+            <label for="campaignKind">Type</label>
+            <select id="campaignKind">
+              <option value="announcement">Product announcement</option>
+              <option value="weekly">Weekly newsletter</option>
+              <option value="update">Platform update</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="campaignPreheader">Preview text (optional)</label>
+            <input type="text" id="campaignPreheader" maxlength="150" />
+          </div>
+          <div class="field span-2">
+            <label for="campaignSubject">Subject line</label>
+            <input type="text" id="campaignSubject" required minlength="3" maxlength="150" />
+          </div>
+          <div class="field span-2">
+            <label for="campaignHeading">Heading</label>
+            <input type="text" id="campaignHeading" required minlength="3" maxlength="150" />
+          </div>
+          <div class="field span-2">
+            <label for="campaignBody">Message</label>
+            <textarea id="campaignBody" rows="4"></textarea>
+          </div>
+          <div class="field span-2">
+            <label>Products to include (up to 12)</label>
+            <div class="picker" id="campaignProductList"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:18px;">
+          <button type="submit" class="btn btn-primary">Save draft</button>
+          <button type="button" class="btn btn-ghost" id="cancelCampaignBtn">Cancel</button>
+        </div>
+        <div class="form-msg" id="campaignFormMsg" style="display:none;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Testimonial modal -->
+  <div class="modal-overlay" id="testimonialModalOverlay">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-head">
+        <h3>Testimonial</h3>
+        <button class="modal-close" id="testimonialModalClose" data-icon="close" aria-label="Close"><span class="icon"></span></button>
+      </div>
+      <form id="testimonialForm">
+        <input type="hidden" id="testimonialId" />
+        <div class="field"><label for="testimonialName">Customer name</label><input type="text" id="testimonialName" required minlength="2" maxlength="100" /></div>
+        <div class="field"><label for="testimonialQuote">What they said</label><textarea id="testimonialQuote" rows="3" required minlength="5" maxlength="1000"></textarea></div>
+        <div class="field">
+          <label for="testimonialRating">Their rating</label>
+          <select id="testimonialRating"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+        </div>
+        <div class="checkbox-row"><input type="checkbox" id="testimonialPublished" checked /><label for="testimonialPublished" style="margin:0;">Show on the homepage</label></div>
+        <div style="display:flex;gap:10px;margin-top:18px;">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-ghost" id="cancelTestimonialBtn">Cancel</button>
+        </div>
+        <div class="form-msg" id="testimonialFormMsg" style="display:none;"></div>
+      </form>
+    </div>
+  </div>
+
   <script src="/js/api.js"></script>
   <script src="/js/icons.js"></script>
   <script src="/admin/js/dashboard.js"></script>
+  <script src="/admin/js/email.js"></script>
 </body>
 
 </html>

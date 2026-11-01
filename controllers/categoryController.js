@@ -2,6 +2,7 @@
 const Category = require('../models/Category');
 const asyncHandler = require('../utils/asyncHandler');
 const { notifyPartners } = require('../services/partnerWebhook');
+const { invalidateHomeCache } = require('./homeController');
 
 exports.list = asyncHandler(async (req, res) => {
   const categories = await Category.all();
@@ -14,6 +15,7 @@ exports.create = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Category name is required.' });
   }
   const category = await Category.create({ name, icon, description });
+  invalidateHomeCache();
   res.status(201).json({ success: true, message: 'Category created.', category });
 });
 
@@ -25,9 +27,10 @@ exports.update = asyncHandler(async (req, res) => {
   }
   const category = await Category.update(req.params.id, {
     name: req.body.name || existing.name,
-    icon: req.body.icon,
-    description: req.body.description
+    icon: req.body.icon ?? existing.icon,
+    description: req.body.description ?? existing.description
   });
+  invalidateHomeCache();
   notifyPartners('category.updated', category);
   res.json({ success: true, message: 'Category updated.', category });
 });
@@ -36,6 +39,7 @@ exports.remove = asyncHandler(async (req, res) => {
   const existing = await Category.findById(req.params.id);
   if (!existing) return res.status(404).json({ success: false, message: 'Category not found.' });
   await Category.remove(req.params.id);
+  invalidateHomeCache();
   notifyPartners('category.deleted', existing);
   res.json({ success: true, message: 'Category deleted.' });
 });

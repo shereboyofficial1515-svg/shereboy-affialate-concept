@@ -1,12 +1,21 @@
 // public/js/product-details.js
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
+  loadProduct();
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-retry]')) loadProduct();
+  });
+});
+
+async function loadProduct() {
   const slug = new URLSearchParams(window.location.search).get('slug');
   const section = document.getElementById('productSection');
 
   if (!slug) {
-    section.innerHTML = `<div class="container">${emptyStateHTML('No product specified.', 'warning')}</div>`;
+    section.innerHTML = `<div class="container">${emptyStateHTML('No product was specified.', 'warning')}<p style="text-align:center;"><a class="btn btn-primary" href="/products.html">Browse products</a></p></div>`;
     return;
   }
+
+  section.innerHTML = `<div class="container pd-grid" aria-busy="true"><div><span class="sk sk-media" style="border-radius:18px;"></span></div><div><span class="sk sk-line sk-w40"></span><br /><span class="sk sk-line sk-w80" style="height:26px;"></span><br /><span class="sk sk-line sk-w40" style="height:30px;"></span><span class="sk sk-btn"></span></div></div>`;
 
   try {
     const { product, related } = await API.get(`/api/products/slug/${encodeURIComponent(slug)}`);
@@ -16,19 +25,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('relatedGrid').innerHTML = related.map(productCardHTML).join('');
     }
   } catch (err) {
-    section.innerHTML = `<div class="container">${emptyStateHTML(`Couldn't load this product: ${err.message}`, 'warning')}</div>`;
+    if (err.message === 'Product not found.') {
+      section.innerHTML = `<div class="container">${emptyStateHTML("We couldn't find that product. It may have been removed.", 'search')}<p style="text-align:center;"><a class="btn btn-primary" href="/products.html">Browse products</a></p></div>`;
+    } else {
+      section.innerHTML = `<div class="container">${errorStateHTML(`We couldn't load this product. ${err.message}`)}</div>`;
+    }
   }
-});
+}
 
 function renderProduct(p) {
-  document.title = `${p.name} — SHEREBOY AFFILIATE CONCEPT`;
-  const descriptionTag = document.getElementById('pageDescription');
-  if (descriptionTag) {
-    const summary = (p.description || `${p.name} — available now on SHEREBOY AFFILIATE CONCEPT.`).slice(0, 160);
-    descriptionTag.setAttribute('content', summary);
-  }
-  const images = p.images && p.images.length ? p.images : ['/images/placeholder-product.svg'];
-  const savings = p.discount_percent > 0 ? Math.round(p.price - p.final_price) : 0;
+  const name = String(p.name).trim();
+  document.title = `${name} — SHEREBOY AFFILIATE CONCEPT`;
+  const images = p.images || [];
+  const discounted = hasDiscount(p);
+  const savings = discounted ? Math.round(p.price - p.final_price) : 0;
+  const mainSizes = '(max-width: 860px) 100vw, 590px';
 
   const specRows = Object.entries(p.specifications || {})
     .map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(String(v))}</td></tr>`).join('');
@@ -36,40 +47,48 @@ function renderProduct(p) {
   document.getElementById('productSection').innerHTML = `
   <div class="container pd-grid">
     <div>
-      <div class="pd-main-img"><img id="mainImg" src="${escapeHtml(images[0])}" alt="${escapeHtml(p.name)}" /></div>
-      ${images.length > 1 ? `<div class="pd-thumbs">${images.map((img, i) => `<img src="${escapeHtml(img)}" class="${i === 0 ? 'active' : ''}" data-src="${escapeHtml(img)}" alt="${escapeHtml(p.name)} thumbnail" loading="lazy" role="button" tabindex="0" />`).join('')}</div>` : ''}
+      <div class="pd-main-img"><img id="mainImg" ${productImageAttrs(images[0], mainSizes)} alt="${escapeHtml(name)}" width="800" height="800" decoding="async" /></div>
+      ${images.length > 1 ? `<div class="pd-thumbs">${images.map((img, i) => `
+        <button type="button" class="pd-thumb${i === 0 ? ' active' : ''}" data-index="${i}" aria-label="Show image ${i + 1} of ${images.length}">
+          <img ${productImageAttrs(img, '72px')} alt="" width="72" height="72" loading="lazy" decoding="async" />
+        </button>`).join('')}</div>` : ''}
     </div>
     <div>
-      <span class="product-cat">${escapeHtml(p.category_name || 'Uncategorized')}</span>
-      <h1 style="margin-top:6px;">${escapeHtml(p.name)}</h1>
-      <div class="badge-row" style="position:static;margin-top:12px;">
+      <nav class="pd-crumb" aria-label="Breadcrumb">
+        <a href="/products.html">Products</a>
+        ${p.category_name ? `<span aria-hidden="true">/</span><a href="/products.html?category=${encodeURIComponent(p.category_slug)}">${escapeHtml(p.category_name)}</a>` : ''}
+      </nav>
+      <h1 class="pd-title">${escapeHtml(name)}</h1>
+      <div class="pd-badges">
+        ${discounted ? `<span class="badge badge-discount">-${Math.round(p.discount_percent)}%</span>` : ''}
         ${p.is_featured ? '<span class="badge badge-featured">Featured</span>' : ''}
-        ${p.is_deal ? '<span class="badge badge-deal">Deal</span>' : ''}
-        ${p.availability === 'out_of_stock' ? '<span class="badge badge-out">Out of stock</span>' : p.availability === 'limited' ? '<span class="badge" style="background:#FBE6E4;color:#C0362C;">Limited stock</span>' : ''}
+        ${verifiedHTML(p)}
+        ${ratingHTML(p)}
       </div>
       <div class="pd-price-block">
         <span class="pd-price-now">${formatNaira(p.final_price)}</span>
-        ${p.discount_percent > 0 ? `<span class="price-was">${formatNaira(p.price)}</span>` : ''}
-        ${savings > 0 ? `<span class="savings">Save ${formatNaira(savings)}</span>` : ''}
+        ${discounted ? `<span class="price-was"><span class="visually-hidden">Was </span>${formatNaira(p.price)}</span>` : ''}
+        ${savings > 0 ? `<span class="savings">You save ${formatNaira(savings)}</span>` : ''}
       </div>
-      <p style="color:var(--gray-500);">${escapeHtml(p.description || '')}</p>
-      <div style="display:flex;gap:12px;margin-top:24px;">
-        <a href="${escapeHtml(p.affiliate_link)}" target="_blank" rel="noopener sponsored" class="btn btn-primary">Buy Now ${icon('external-link')}</a>
-        <a href="/products.html" class="btn btn-ghost">${icon('arrow-left')} Back to products</a>
+      <div class="pcard-status">${stockHTML(p.availability)}</div>
+      <div class="pd-actions">
+        <a href="${escapeHtml(p.affiliate_link)}" target="_blank" rel="noopener sponsored nofollow" data-track-click="${Number(p.id)}" class="btn btn-primary">View Deal ${icon('external-link')}</a>
+        <a href="/products.html" class="btn btn-outline">${icon('arrow-left')} All products</a>
       </div>
+      <p class="pd-disclosure">Opens the retailer's site. We may earn a commission at no extra cost to you. Check the final price there before you buy.</p>
+      <p class="pd-description">${escapeHtml(p.description || '')}</p>
       ${specRows ? `<div class="pd-specs"><h3 style="margin-bottom:12px;">Specifications</h3><table>${specRows}</table></div>` : ''}
     </div>
   </div>`;
 
-  document.querySelectorAll('.pd-thumbs img').forEach(thumb => {
-    const select = () => {
-      document.getElementById('mainImg').src = thumb.dataset.src;
-      document.querySelectorAll('.pd-thumbs img').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pd-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      const main = document.getElementById('mainImg');
+      const next = document.createElement('template');
+      next.innerHTML = `<img id="mainImg" ${productImageAttrs(images[Number(thumb.dataset.index)], mainSizes)} alt="${escapeHtml(name)}" width="800" height="800" decoding="async" />`;
+      main.replaceWith(next.content.firstChild);
+      document.querySelectorAll('.pd-thumb').forEach(t => t.classList.remove('active'));
       thumb.classList.add('active');
-    };
-    thumb.addEventListener('click', select);
-    thumb.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(); }
     });
   });
 }

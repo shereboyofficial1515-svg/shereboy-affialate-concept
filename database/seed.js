@@ -9,7 +9,7 @@
 //
 // This creates the first admin account directly in Supabase Auth (via the
 // service-role "admin" API — this is the one place that API is meant for),
-// plus sample categories, products, and testimonials so the site isn't
+// plus sample categories and products so the site isn't
 // empty on first run.
 
 require('dotenv').config();
@@ -162,22 +162,7 @@ async function seed() {
     console.log('Products already exist — skipping sample data.');
   }
 
-  // ---- Testimonials ----
-  const { count: testimonialCount, error: testErr } = await supabaseAdmin
-    .from('testimonials')
-    .select('*', { count: 'exact', head: true });
-  if (testErr) throw new Error(`Failed to count testimonials: ${testErr.message}`);
-
-  if (!testimonialCount) {
-    const testimonials = [
-      { customer_name: 'Amaka O.', quote: 'Found a great headphone deal here that I couldn\'t find anywhere else. Delivery was smooth too.', rating: 5 },
-      { customer_name: 'Tunde A.', quote: 'The product descriptions are honest and detailed — no surprises when the item arrived.', rating: 5 },
-      { customer_name: 'Blessing E.', quote: 'I use the AI assistant to compare products before buying. Saves me so much time.', rating: 4 }
-    ];
-    const { error } = await supabaseAdmin.from('testimonials').insert(testimonials);
-    if (error) throw new Error(`Failed to create testimonials: ${error.message}`);
-    console.log(`Testimonials created (${testimonials.length})`);
-  }
+  // Testimonials aren't seeded: only real customer words belong there (Admin → Testimonials).
 
   console.log('\nSeeding complete!\n');
 }
