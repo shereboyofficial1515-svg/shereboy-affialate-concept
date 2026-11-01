@@ -1,8 +1,8 @@
 // controllers/productController.js
 const Product = require('../models/Product');
-const fs = require('fs');
-const path = require('path');
 const asyncHandler = require('../utils/asyncHandler');
+const { storeImages, deleteImages } = require('../services/imageStorage');
+const { notifyPartners } = require('../services/partnerWebhook');
 
 exports.list = asyncHandler(async (req, res) => {
   const { q, category, sort, page, featured, deal } = req.query;
@@ -31,7 +31,7 @@ exports.getById = asyncHandler(async (req, res) => {
 });
 
 exports.create = asyncHandler(async (req, res) => {
-  const images = (req.files || []).map(f => `/uploads/${f.filename}`);
+  const images = await storeImages(req.files);
   let specifications = {};
   try {
     specifications = req.body.specifications ? JSON.parse(req.body.specifications) : {};
@@ -51,6 +51,7 @@ exports.create = asyncHandler(async (req, res) => {
     images
   });
 
+  notifyPartners('product.created', product);
   res.status(201).json({ success: true, message: 'Product published.', product });
 });
 
@@ -58,11 +59,13 @@ exports.update = asyncHandler(async (req, res) => {
   const existing = await Product.findById(req.params.id);
   if (!existing) return res.status(404).json({ success: false, message: 'Product not found.' });
 
-  const newImages = (req.files || []).map(f => `/uploads/${f.filename}`);
   let keepImages = existing.images;
   if (req.body.existing_images) {
     try { keepImages = JSON.parse(req.body.existing_images); } catch (e) { /* keep original */ }
   }
+  // Only images this product already had can be kept (never arbitrary paths)
+  keepImages = (Array.isArray(keepImages) ? keepImages : []).filter(img => existing.images.includes(img));
+  const newImages = await storeImages(req.files);
 
   let specifications = existing.specifications;
   if (req.body.specifications) {
@@ -83,6 +86,9 @@ exports.update = asyncHandler(async (req, res) => {
     images: [...keepImages, ...newImages]
   });
 
+  // Clean up images the admin removed from this product
+  deleteImages(existing.images.filter(img => !keepImages.includes(img))).catch(() => {});
+  notifyPartners('product.updated', product);
   res.json({ success: true, message: 'Product updated.', product });
 });
 
@@ -90,13 +96,10 @@ exports.remove = asyncHandler(async (req, res) => {
   const existing = await Product.findById(req.params.id);
   if (!existing) return res.status(404).json({ success: false, message: 'Product not found.' });
 
-  // Clean up any uploaded image files that belong only to this product.
-  existing.images.forEach(imgPath => {
-    const filePath = path.join(__dirname, '..', 'public', imgPath);
-    fs.unlink(filePath, () => {}); // best-effort, ignore errors
-  });
-
   await Product.remove(req.params.id);
+  // Clean up the images that belonged to this product (best-effort)
+  deleteImages(existing.images).catch(() => {});
+  notifyPartners('product.deleted', existing);
   res.json({ success: true, message: 'Product deleted.' });
 });
 

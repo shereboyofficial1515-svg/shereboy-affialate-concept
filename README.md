@@ -88,6 +88,43 @@ The floating chat widget (bottom-right on every public page) calls
   `gemini-2.5-flash`. If Google renames/retires that model in the future,
   just update `GEMINI_MODEL` in `.env`.
 
+## 4b. Public product API (SHEREBOY TECH LTD integration)
+
+A read-only feed that lets https://shereboytechltd.site showcase products. Product management stays
+here — the company site can only read.
+
+| Route | Purpose |
+|---|---|
+| `GET /api/public/products?page=1&pageSize=24&category=<slug>&q=<text>&featured=true&deal=true&available=true` | Paginated products (pageSize ≤ 48) |
+| `GET /api/public/products/featured?limit=8` | Products marked as featured |
+| `GET /api/public/products/:slug` | One product (404 if missing) |
+| `GET /api/public/categories` | Categories that currently have products |
+| `GET /api/public/status` | Connection check: product, available and featured counts |
+
+Each product: `id, slug, name, description` (plain text), `image {url, alt} | null, images[],
+category {name, slug} | null, price {current, previous | null, discountPercent, currency: "NGN"},
+isFeatured, isDeal, availability, isAvailable, productUrl` (this site's product page),
+`affiliateUrl` (the partner-store tracking link exactly as entered — query parameters intact — or
+null if invalid), `addedAt, updatedAt`. Image paths whose files no longer exist are omitted rather
+than returned as broken links. Invalid parameters → 400; writes → 405. GET only, no credentials;
+browser CORS is limited to `PUBLIC_API_ALLOWED_ORIGINS`.
+
+When `COMPANY_SITE_WEBHOOK_URL` and `COMPANY_SITE_WEBHOOK_SECRET` are set, creating, editing or
+deleting a product (or editing/deleting a category) sends a signed notice (`X-Affiliate-Timestamp`,
+`X-Affiliate-Signature: sha256=HMAC(secret, "<timestamp>.<body>")`) containing only the event name
+and slug, so the company site refreshes immediately.
+
+Optional: run `database/migrations/001_products_updated_at.sql` to record when each product was
+last edited.
+
+### Product images
+
+New product images are saved to the public Supabase Storage bucket
+`SUPABASE_PRODUCT_IMAGES_BUCKET` (default `product-images`, created automatically). Previously
+images were written to `public/uploads` on the server's disk, which hosts such as Render erase on
+every deploy — products uploaded that way lost their images and need them re-uploaded once from
+the dashboard.
+
 ## 5. Project structure
 
 ```
