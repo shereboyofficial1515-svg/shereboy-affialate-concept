@@ -4,6 +4,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { storeImages, deleteImages } = require('../services/imageStorage');
 const { notifyPartners } = require('../services/partnerWebhook');
 const { publicProduct } = require('../services/productView');
+const { cleanHtml } = require('../services/richText');
 const { supabaseAdmin } = require('../config/supabase');
 const { invalidateHomeCache } = require('./homeController');
 
@@ -103,7 +104,8 @@ exports.update = asyncHandler(async (req, res) => {
 
   const product = await Product.update(req.params.id, {
     name: req.body.name,
-    description: req.body.description,
+    // Formatted descriptions are displayed as HTML, so only clean HTML may be stored
+    description: existing.description_format === 'html' && req.body.description !== undefined ? cleanHtml(req.body.description) : req.body.description,
     specifications,
     price: req.body.price !== undefined ? Number(req.body.price) : undefined,
     discount_percent: req.body.discount_percent !== undefined ? Number(req.body.discount_percent) : undefined,

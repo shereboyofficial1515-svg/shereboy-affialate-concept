@@ -48,7 +48,7 @@ function applySettings(html, all, { isHome = false } = {}) {
   if (isHome) {
     // The default title contains the default name, so it follows a renamed site
     const metaTitle = seo.meta_title.split(DEFAULT_NAME).join(identity.site_name);
-    out = out.replace(/<title[^>]*>[^<]*<\/title>/, `<title>${attr(metaTitle)}</title>`);
+    out = out.replace(/<title[^>]*>[^<]*<\/title>/, () => `<title>${attr(metaTitle)}</title>`);
     out = setMeta(out, 'name="description"', seo.meta_description);
     out = setMeta(out, 'property="og:title"', metaTitle);
     out = setMeta(out, 'property="og:description"', seo.meta_description);
@@ -59,8 +59,8 @@ function applySettings(html, all, { isHome = false } = {}) {
   }
   if (identity.favicon) {
     out = out.replace(/\s*<link rel="icon" href="\/favicon\.ico"[^>]*>/, '')
-      .replace(/<link rel="icon" href="\/images\/favicon\.svg"[^>]*>/, `<link rel="icon" href="${attr(identity.favicon)}" />`)
-      .replace(/<link rel="apple-touch-icon" href="[^"]*"/, `<link rel="apple-touch-icon" href="${attr(identity.favicon)}"`);
+      .replace(/<link rel="icon" href="\/images\/favicon\.svg"[^>]*>/, () => `<link rel="icon" href="${attr(identity.favicon)}" />`)
+      .replace(/<link rel="apple-touch-icon" href="[^"]*"/, () => `<link rel="apple-touch-icon" href="${attr(identity.favicon)}"`);
   }
   out = out.replace(/<meta name="theme-color" content="[^"]*"/, `<meta name="theme-color" content="${attr(appearance.secondary)}"`);
 
@@ -69,15 +69,15 @@ function applySettings(html, all, { isHome = false } = {}) {
   if (seo.google_verification) head.push(`<meta name="google-site-verification" content="${attr(seo.google_verification)}" />`);
   if (!seo.allow_indexing) head.push('<meta name="robots" content="noindex, nofollow" />');
   if (seo.twitter_handle) head.push(`<meta name="twitter:site" content="${attr(seo.twitter_handle)}" />`);
-  return out.replace('</head>', `  ${head.join('\n  ')}\n</head>`);
+  return out.replace('</head>', () => `  ${head.join('\n  ')}\n</head>`);
 }
 
 function applyHero(html, { homepage }) {
   const escapeText = (value) => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const heading = `${escapeText(homepage.hero_headline)}${homepage.hero_highlight ? `<br /><em>${escapeText(homepage.hero_highlight)}</em>` : ''}`;
   return html
-    .replace(/(<h1 id="heroTitle">)[\s\S]*?(<\/h1>)/, `$1${heading}$2`)
-    .replace(/(<p class="lead" id="heroLead">)[\s\S]*?(<\/p>)/, `$1${escapeText(homepage.hero_description)}$2`);
+    .replace(/(<h1 id="heroTitle">)[\s\S]*?(<\/h1>)/, (_, open, close) => `${open}${heading}${close}`)
+    .replace(/(<p class="lead" id="heroLead">)[\s\S]*?(<\/p>)/, (_, open, close) => `${open}${escapeText(homepage.hero_description)}${close}`);
 }
 
 async function publishedPage(slug) {
@@ -87,10 +87,10 @@ async function publishedPage(slug) {
 }
 
 function legalHtml(all, title, bodyHtml, updatedAt) {
-  const updated = updatedAt ? `<p class="page-updated">Last updated ${new Date(updatedAt).toLocaleDateString(all.regional.locale, { timeZone: all.regional.timezone, dateStyle: 'long' })}</p>` : '';
+  const updated = updatedAt ? `<p class="page-updated">Last updated ${attr(settings.formatDate(updatedAt))}</p>` : '';
   const html = template('legal.html')
-    .replace(/<!-- page-title -->/g, attr(title))
-    .replace('<!-- page-updated -->', updated)
+    .replace(/<!-- page-title -->/g, () => attr(title))
+    .replace('<!-- page-updated -->', () => updated)
     .replace('<!-- page-content -->', () => bodyHtml);
   return applySettings(html, all);
 }
@@ -108,8 +108,10 @@ async function serveHtml(req, res, next) {
       const page = await publishedPage(slug);
       if (page) return res.type('html').send(legalHtml(all, page.title, page.published_html, page.published_at));
     }
-    // legal.html is only a template; no-static pages stay 404 until published
-    if (name === 'legal.html' || !fs.existsSync(path.join(PUBLIC_DIR, name))) return next();
+    // legal.html is only a template, never a page of its own
+    if (name === 'legal.html') return res.status(404).type('html').send(applySettings(template('404.html'), all));
+    // Pages without a file stay 404 until published
+    if (!fs.existsSync(path.join(PUBLIC_DIR, name))) return next();
 
     let html = applySettings(template(name), all, { isHome: name === 'index.html' });
     if (name === 'index.html') html = applyHero(html, all);

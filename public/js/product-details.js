@@ -46,7 +46,7 @@ async function loadProduct() {
 
 function renderProduct(p) {
   const name = String(p.name).trim();
-  document.title = `${name} — SHEREBOY AFFILIATE CONCEPT`;
+  document.title = `${p.seo_title || name} — ${(window.SITE && window.SITE.name) || document.title.split(' — ').pop()}`;
   const images = p.images || [];
   const discounted = hasDiscount(p);
   const savings = discounted ? Math.round(p.price - p.final_price) : 0;

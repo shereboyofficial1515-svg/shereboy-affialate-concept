@@ -320,7 +320,7 @@ async function loadBannersView() {
       ${banners.length ? banners.map((b) => `<tr>
         <td class="product-cell">${b.image_url ? `<img class="table-thumb" src="${escapeHtml(b.image_url)}" alt="" />` : ''}<span>${escapeHtml(b.title)}</span></td>
         <td>${places[b.placement]}</td>
-        <td class="muted-cell">${b.starts_at ? new Date(b.starts_at).toLocaleDateString() : 'Now'} – ${b.ends_at ? new Date(b.ends_at).toLocaleDateString() : 'No end'}</td>
+        <td class="muted-cell">${b.starts_at ? formatDateOnly(b.starts_at) : 'Now'} – ${b.ends_at ? formatDateOnly(b.ends_at) : 'No end'}</td>
         <td>${b.is_active ? '<span class="pill pill-green">Active</span>' : '<span class="pill pill-gray">Off</span>'}</td>
         <td class="row-actions"><button class="btn btn-ghost btn-sm" data-edit="${Number(b.id)}">Edit</button><button class="btn btn-danger btn-sm" data-del="${Number(b.id)}">Delete</button></td></tr>`).join('') : emptyRow(5, 'No banners yet.')}
       </tbody></table></div>`;
@@ -362,7 +362,7 @@ async function loadPagesView(activeSlug) {
       <div class="panel">
         <div class="field"><label for="pageTitle">Title</label><input id="pageTitle" value="${escapeHtml(page.title)}" maxlength="150" /></div>
         <div id="pageEditor"></div>
-        <p class="muted-cell" style="margin-top:10px;">${page.published_at ? `Published ${new Date(page.published_at).toLocaleString()}.` : page.published ? 'Currently showing the original page text.' : 'Not published yet: this page doesn’t exist for visitors.'} ${page.has_unpublished_changes ? 'You have changes that aren’t published.' : ''}</p>
+        <p class="muted-cell" style="margin-top:10px;">${page.published_at ? `Published ${formatDateTime(page.published_at)}.` : page.published ? 'Currently showing the original page text.' : 'Not published yet: this page doesn’t exist for visitors.'} ${page.has_unpublished_changes ? 'You have changes that aren’t published.' : ''}</p>
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" data-save>Save draft</button>
           <button type="button" class="btn btn-ghost" data-preview>Preview</button>

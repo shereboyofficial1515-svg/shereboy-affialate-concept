@@ -321,7 +321,7 @@ async function loadAiActivityView() {
       <div class="panel"><h3 class="form-heading">Models</h3>${bars(models)}</div>
       <div class="panel table-panel"><table><thead><tr><th>When</th><th>Feature</th><th>Model</th><th>Status</th><th>Tokens</th><th>By</th></tr></thead><tbody>
       ${recent.length ? recent.map((r) => `<tr>
-        <td class="muted-cell">${new Date(r.created_at).toLocaleString()}</td>
+        <td class="muted-cell">${formatDateTime(r.created_at)}</td>
         <td>${escapeHtml(r.action || r.feature)}</td>
         <td>${escapeHtml(r.model || '—')}</td>
         <td><span class="pill ${r.status === 'success' ? 'pill-green' : r.status === 'blocked' ? 'pill-gold' : 'pill-red'}">${escapeHtml(r.status)}</span>${r.error ? `<br><span class="muted-cell">${escapeHtml(r.error)}</span>` : ''}</td>

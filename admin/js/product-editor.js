@@ -36,7 +36,7 @@ async function loadProducts() {
           <span>${escapeHtml(String(p.name).trim())}${p.images_missing ? '<br><span class="pill pill-red">Image missing</span>' : ''}${p.has_draft ? '<br><span class="pill pill-gold">Unpublished changes</span>' : ''}</span></td>
         <td>${escapeHtml(p.category_name || 'Uncategorized')}</td>
         <td class="num">${formatNaira(p.final_price)}</td>
-        <td>${statusPill(p.status)}${p.publish_at ? `<br><span class="muted-cell">${new Date(p.publish_at).toLocaleString()}</span>` : ''}</td>
+        <td>${statusPill(p.status)}${p.publish_at ? `<br><span class="muted-cell">${formatDateTime(p.publish_at)}</span>` : ''}</td>
         <td>${p.is_featured ? '<span class="pill pill-gold">Featured</span> ' : ''}${p.is_deal ? '<span class="pill pill-blue">Deal</span> ' : ''}${p.is_verified ? '<span class="pill pill-green">Verified</span>' : ''}</td>
         <td class="row-actions"><button class="btn btn-ghost btn-sm" data-edit-product="${Number(p.id)}">Edit</button></td>
       </tr>`).join('') : emptyRow(6, productFilter.status || productFilter.q ? 'No products match.' : 'No products yet. Click "Add product" to create your first one.');
@@ -207,7 +207,7 @@ function drawActions() {
     if (editor.id) buttons.push('<button type="button" class="btn btn-danger btn-sm" data-action="delete">Delete</button>');
   }
   document.getElementById('editorActions').innerHTML = buttons.join('');
-  document.getElementById('editorStatus').innerHTML = statusPill(status) + (hasDraft && live ? ' <span class="pill pill-gold">Unpublished changes</span>' : '') + (editor.publish_at ? ` <span class="muted-cell">for ${new Date(editor.publish_at).toLocaleString()}</span>` : '');
+  document.getElementById('editorStatus').innerHTML = statusPill(status) + (hasDraft && live ? ' <span class="pill pill-gold">Unpublished changes</span>' : '') + (editor.publish_at ? ` <span class="muted-cell">for ${formatDateTime(editor.publish_at)}</span>` : '');
 }
 
 function queueAutosave() {
@@ -219,9 +219,11 @@ function queueAutosave() {
 }
 
 async function saveDraftNow() {
-  if (!editor || !editor.dirty) return true;
+  if (!editor) return true;
   clearTimeout(editor.timer);
-  if (editor.saving) return editor.saving;
+  // One save at a time. Whatever changed during it is saved straight afterwards.
+  if (editor.saving) await editor.saving;
+  if (!editor || !editor.dirty) return true;
   editor.dirty = false;
   const current = editor;
   setAutosave('Saving…');
@@ -248,7 +250,9 @@ async function saveDraftNow() {
       current.saving = null;
     }
   })();
-  return current.saving;
+  const saved = await current.saving;
+  if (saved && current.dirty && editor === current) current.timer = setTimeout(saveDraftNow, AUTOSAVE_MS);
+  return saved;
 }
 
 function showFieldErrors(errors) {
@@ -272,6 +276,7 @@ function showFieldErrors(errors) {
 }
 
 async function openProductEditor(id) {
+  await flushEditor();
   showView('product-editor', id ? 'Edit product' : 'Add product');
   const section = document.getElementById('view-product-editor');
   section.innerHTML = '<div class="panel"><span class="muted-cell">Loading…</span></div>';
@@ -297,7 +302,7 @@ async function openProductEditor(id) {
   drawGallery();
   updateFinalPrice();
   drawActions();
-  setAutosave(product.draft_saved_at ? `Draft saved ${new Date(product.draft_saved_at).toLocaleString()}` : '');
+  setAutosave(product.draft_saved_at ? `Draft saved ${formatDateTime(product.draft_saved_at)}` : '');
   drawAiToolbar();
 
   section.oninput = (e) => {
@@ -309,9 +314,14 @@ async function openProductEditor(id) {
   section.onclick = onEditorClick;
 }
 
+/** Saves anything pending before the editor's contents are replaced or left. */
+async function flushEditor() {
+  if (editor && (editor.dirty || editor.saving)) await saveDraftNow();
+}
+
 async function onEditorClick(e) {
   if (e.target.closest('[data-back]')) {
-    await saveDraftNow();
+    await flushEditor();
     editor = null;
     location.hash = '#products';
     return;
@@ -367,8 +377,8 @@ async function editorAction(action, button) {
       window.open(`/product-details.html?preview=${editor.id}`, '_blank', 'noopener');
       return;
     }
-    if (editor.dirty || !editor.id) {
-      editor.dirty = true;
+    if (editor.dirty || editor.saving || !editor.id) {
+      editor.dirty = editor.dirty || !editor.id;
       if (!(await saveDraftNow())) return;
     }
     if (action === 'publish') {

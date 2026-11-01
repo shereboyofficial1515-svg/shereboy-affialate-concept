@@ -1,3 +1,12 @@
+// The logo and name chosen in General Settings
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.SITE) return;
+  const logo = document.querySelector('.login-brand img');
+  if (window.SITE.logo) logo.src = window.SITE.logo;
+  logo.alt = window.SITE.name;
+  document.title = `Admin Login — ${window.SITE.name}`;
+});
+
 // admin/js/admin-auth.js
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('loginForm');

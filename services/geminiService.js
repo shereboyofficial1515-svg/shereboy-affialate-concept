@@ -24,7 +24,7 @@ async function buildCatalogContext() {
   const categories = await Category.all();
 
   const catalogLines = items.map(p =>
-    `- ${String(p.name).trim()} | Category: ${p.category_name || 'Uncategorized'} | Price: ₦${p.final_price} (was ₦${p.price}) | ${p.availability} | ${toPlainText(p.short_description || p.description).slice(0, 200)}`
+    `- ${String(p.name).trim()} | Category: ${p.category_name || 'Uncategorized'} | Price: ${settings.formatMoney(p.final_price)}${p.discount_percent > 0 ? ` (was ${settings.formatMoney(p.price)})` : ''} | ${p.availability} | ${toPlainText(p.short_description || p.description).slice(0, 200)}`
   ).join('\n');
 
   const categoryLines = categories.filter(c => c.product_count > 0).map(c => `- ${c.name} (${c.product_count} products)`).join('\n');
@@ -58,7 +58,9 @@ ${await buildCatalogContext()}
     feature: 'assistant',
     system,
     query: userMessage,
-    messages: [...history.map(h => ({ role: h.role, text: h.text })), { role: 'user', text: userMessage }]
+    messages: [...history.map(h => ({ role: h.role, text: h.text })), { role: 'user', text: userMessage }],
+    // Visitors can start this, so each answer's cost is kept modest whatever the editor limit is
+    maxTokens: 1500
   });
   return { reply: result.text, configured: true };
 }

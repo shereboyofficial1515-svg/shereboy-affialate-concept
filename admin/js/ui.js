@@ -4,6 +4,22 @@
 
 const Permissions = { list: [], can: (p) => Permissions.list.includes(p) };
 
+// Dates and times follow Regional Settings
+function dateParts() {
+  const { dateFormat: format = 'medium', timezone } = (window.SITE && window.SITE.regional) || {};
+  const parts = format === 'numeric' ? { year: 'numeric', month: '2-digit', day: '2-digit' }
+    : { year: 'numeric', month: format === 'long' ? 'long' : 'short', day: 'numeric' };
+  return timezone ? { ...parts, timeZone: timezone } : parts;
+}
+const siteLocale = () => (window.SITE && window.SITE.regional && window.SITE.regional.locale) || undefined;
+function formatDateOnly(value) {
+  return new Date(value).toLocaleDateString(siteLocale(), dateParts());
+}
+function formatDateTime(value) {
+  const hour12 = !(window.SITE && window.SITE.regional && window.SITE.regional.timeFormat === '24h');
+  return new Date(value).toLocaleString(siteLocale(), { ...dateParts(), hour: 'numeric', minute: '2-digit', hour12 });
+}
+
 function toast(message, type = 'success') {
   let wrap = document.getElementById('toasts');
   if (!wrap) {

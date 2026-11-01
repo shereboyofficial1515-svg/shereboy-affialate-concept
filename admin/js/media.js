@@ -268,7 +268,7 @@ async function openMediaDetails(item) {
           <dt>Format</dt><dd>${escapeHtml(item.mime_type)}</dd>
           <dt>Size</dt><dd>${formatBytes(item.size_bytes)}</dd>
           ${item.width ? `<dt>Dimensions</dt><dd>${Number(item.width)} × ${Number(item.height)} px</dd>` : ''}
-          <dt>Uploaded</dt><dd>${new Date(item.created_at).toLocaleString()}</dd>
+          <dt>Uploaded</dt><dd>${formatDateTime(item.created_at)}</dd>
           ${item.uploaded_by ? `<dt>By</dt><dd>${escapeHtml(item.uploaded_by)}</dd>` : ''}
         </dl>
       </div>

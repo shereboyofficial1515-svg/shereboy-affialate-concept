@@ -28,7 +28,7 @@ function esc(value) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-const naira = (n) => '₦' + Number(n).toLocaleString('en-NG', { maximumFractionDigits: 0 });
+const naira = (n) => settings.formatMoney(n);
 const unsubscribeUrl = (token) => `${site()}/unsubscribe.html?token=${encodeURIComponent(token)}`;
 const oneClickUrl = (token) => `${site()}/api/newsletter/one-click?token=${encodeURIComponent(token)}`;
 const productUrl = (p) => `${site()}/product-details.html?slug=${encodeURIComponent(p.slug)}`;

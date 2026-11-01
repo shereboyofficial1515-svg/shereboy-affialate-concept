@@ -76,6 +76,26 @@ exports.themeCssFile = asyncHandler(async (req, res) => {
   res.type('text/css').send(themeCss(all.appearance, all.homepage));
 });
 
+exports.manifest = asyncHandler(async (req, res) => {
+  const { identity, appearance } = await settings.loadAll();
+  const custom = identity.favicon ? [{ src: identity.favicon, sizes: 'any', type: 'image/webp' }] : null;
+  res.set('Cache-Control', 'no-cache');
+  res.type('application/manifest+json').send(JSON.stringify({
+    name: identity.site_name,
+    short_name: identity.site_name.split(' ')[0],
+    description: identity.tagline,
+    start_url: '/',
+    display: 'standalone',
+    background_color: appearance.background,
+    theme_color: appearance.secondary,
+    icons: custom || [
+      { src: '/images/brand/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/images/brand/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/images/brand/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+    ]
+  }));
+});
+
 exports.robots = asyncHandler(async (req, res) => {
   const all = await settings.loadAll();
   const lines = ['User-agent: *'];

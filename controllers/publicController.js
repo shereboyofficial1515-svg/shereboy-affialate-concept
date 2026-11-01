@@ -12,7 +12,6 @@ const { supabaseAdmin } = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
 const { localUploadExists } = require('../services/imageStorage');
 
-const CURRENCY = 'NGN';
 const MAX_PAGE_SIZE = 48;
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const AVAILABILITY = ['in_stock', 'limited', 'out_of_stock'];
@@ -70,6 +69,7 @@ function plainText(value, max) {
 }
 
 const { toPlainText } = require('../services/richText');
+const settings = require('../services/settings');
 const money = (n) => Math.round(Number(n) * 100) / 100;
 
 function toPublic(row) {
@@ -91,7 +91,7 @@ function toPublic(row) {
       current,
       previous,
       discountPercent: previous ? discount : 0,
-      currency: CURRENCY
+      currency: settings.cached().regional.currency
     },
     isFeatured: !!row.is_featured,
     isDeal: !!row.is_deal,
@@ -224,7 +224,7 @@ exports.status = asyncHandler(async (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json({
     success: true,
-    data: { platform: 'SHEREBOY AFFILIATE CONCEPT', siteUrl: siteUrl(), totalProducts: total, availableProducts: available, featuredProducts: featured, currency: CURRENCY, serverTime: new Date().toISOString() }
+    data: { platform: settings.cached().identity.site_name, siteUrl: siteUrl(), totalProducts: total, availableProducts: available, featuredProducts: featured, currency: settings.cached().regional.currency, serverTime: new Date().toISOString() }
   });
 });
 
