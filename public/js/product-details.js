@@ -36,8 +36,8 @@ function renderProduct(p) {
   document.getElementById('productSection').innerHTML = `
   <div class="container pd-grid">
     <div>
-      <div class="pd-main-img"><img id="mainImg" src="${images[0]}" alt="${escapeHtml(p.name)}" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" /></div>
-      ${images.length > 1 ? `<div class="pd-thumbs">${images.map((img, i) => `<img src="${img}" class="${i === 0 ? 'active' : ''}" data-src="${img}" alt="${escapeHtml(p.name)} thumbnail" loading="lazy" role="button" tabindex="0" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />`).join('')}</div>` : ''}
+      <div class="pd-main-img"><img id="mainImg" src="${escapeHtml(images[0])}" alt="${escapeHtml(p.name)}" /></div>
+      ${images.length > 1 ? `<div class="pd-thumbs">${images.map((img, i) => `<img src="${escapeHtml(img)}" class="${i === 0 ? 'active' : ''}" data-src="${escapeHtml(img)}" alt="${escapeHtml(p.name)} thumbnail" loading="lazy" role="button" tabindex="0" />`).join('')}</div>` : ''}
     </div>
     <div>
       <span class="product-cat">${escapeHtml(p.category_name || 'Uncategorized')}</span>
@@ -54,7 +54,7 @@ function renderProduct(p) {
       </div>
       <p style="color:var(--gray-500);">${escapeHtml(p.description || '')}</p>
       <div style="display:flex;gap:12px;margin-top:24px;">
-        <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary">Buy Now ${icon('external-link')}</a>
+        <a href="${escapeHtml(p.affiliate_link)}" target="_blank" rel="noopener sponsored" class="btn btn-primary">Buy Now ${icon('external-link')}</a>
         <a href="/products.html" class="btn btn-ghost">${icon('arrow-left')} Back to products</a>
       </div>
       ${specRows ? `<div class="pd-specs"><h3 style="margin-bottom:12px;">Specifications</h3><table>${specRows}</table></div>` : ''}

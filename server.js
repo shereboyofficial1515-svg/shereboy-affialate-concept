@@ -20,12 +20,38 @@ const xss = require('xss-clean');
 // else in the app.
 require('./config/supabase');
 
+const { useClientIp } = require('./utils/clientIp');
+
 const app = express();
 
+// Without this, every visitor behind Render's proxy shared one address, so a
+// single visitor could use up the rate limits for everyone
+app.set('trust proxy', 1);
+app.use(useClientIp);
+
 // ---------- Security & performance middleware ----------
-app.use(helmet({
-  contentSecurityPolicy: false // relaxed here since this is a static-frontend + API app; tighten before production
-}));
+// Only the listed sites may show this website in a frame (the SHEREBOY TECH LTD
+// project preview). frame-ancestors replaces the older X-Frame-Options header.
+// Scripts only run from this site's own files, so injected markup can't execute.
+const frameAncestors = (process.env.FRAME_ANCESTORS || 'https://shereboytechltd.site,https://www.shereboytechltd.site')
+  .split(',').map(s => s.trim()).filter(s => /^https?:\/\/[\w.:-]+$/.test(s));
+app.use(helmet({ contentSecurityPolicy: false, frameguard: false }));
+app.use((req, res, next) => {
+  res.set('Content-Security-Policy', [
+    "default-src 'self'",
+    "script-src 'self'",
+    "script-src-attr 'none'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: https:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    `frame-ancestors 'self' ${frameAncestors.join(' ')}`
+  ].join('; '));
+  next();
+});
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '2mb' }));
@@ -41,6 +67,23 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests. Please slow down and try again shortly.' }
 });
+// Readiness for the SHEREBOY TECH LTD service monitor: answers only once the app can
+// reach its database. Before the rate limiter so that monitoring can't exhaust it.
+app.get('/api/health', async (req, res) => {
+  const { supabaseAdmin } = require('./config/supabase');
+  res.set('Cache-Control', 'no-store');
+  try {
+    const { error } = await Promise.race([
+      supabaseAdmin.from('products').select('id', { head: true }).limit(1),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+    ]);
+    if (error) throw error;
+    res.json({ success: true, ready: true, service: 'SHEREBOY AFFILIATE CONCEPT', database: 'ok' });
+  } catch {
+    res.status(503).json({ success: false, ready: false, service: 'SHEREBOY AFFILIATE CONCEPT', database: 'unavailable' });
+  }
+});
+
 app.use(globalLimiter);
 
 // ---------- API routes ----------
@@ -75,6 +118,9 @@ app.use((req, res) => {
 
 // ---------- Central error handler ----------
 app.use((err, req, res, next) => {
+  if (err.name === 'MulterError') {
+    return res.status(400).json({ success: false, message: err.code === 'LIMIT_FILE_SIZE' ? 'Each image must be 5MB or smaller.' : 'That upload could not be accepted.' });
+  }
   // Expected client errors (bad query parameters, rejected uploads) aren't server faults
   const clientError = (err.status && err.status < 500) || (err.message && err.message.includes('Only JPG'));
   if (!clientError) console.error(err.stack || err.message);

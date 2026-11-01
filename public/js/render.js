@@ -10,7 +10,7 @@ function productCardHTML(p) {
   <div class="product-card">
     <a href="/product-details.html?slug=${encodeURIComponent(p.slug)}">
       <div class="product-thumb">
-        <img src="${img}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />
+        <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy" />
         <div class="badge-row">
           ${p.is_featured ? '<span class="badge badge-featured">Featured</span>' : ''}
           ${p.is_deal ? '<span class="badge badge-deal">Deal</span>' : ''}
@@ -29,7 +29,7 @@ function productCardHTML(p) {
     </a>
     <div class="product-actions">
       <a href="/product-details.html?slug=${encodeURIComponent(p.slug)}" class="btn btn-ghost btn-sm btn-block">Details</a>
-      <a href="${p.affiliate_link}" target="_blank" rel="noopener sponsored" class="btn btn-primary btn-sm btn-block">Buy Now ${icon('external-link')}</a>
+      <a href="${escapeHtml(p.affiliate_link)}" target="_blank" rel="noopener sponsored" class="btn btn-primary btn-sm btn-block">Buy Now ${icon('external-link')}</a>
     </div>
   </div>`;
 }

@@ -18,8 +18,11 @@ const { supabaseAdmin } = require('../config/supabase');
 
 async function seed() {
   // ---- Admin user (Supabase Auth) ----
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@shereboytech.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMe_123!';
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword || adminPassword.length < 12) {
+    throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD (at least 12 characters) in .env before seeding.');
+  }
 
   const { data: existingUsers, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
   if (listErr) throw new Error(`Failed to check existing users: ${listErr.message}`);

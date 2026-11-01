@@ -16,6 +16,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadCategories();
 });
 
+// Table and form buttons (inline onclick handlers are blocked by the CSP)
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const id = Number(btn.dataset.id);
+  const actions = {
+    'edit-category': () => window.editCategory(id),
+    'delete-category': () => window.deleteCategory(id),
+    'edit-product': () => window.editProduct(id),
+    'delete-product': () => window.deleteProduct(id),
+    'remove-image': () => window.removeExistingImage(id),
+    'remove-row': () => btn.parentElement.remove()
+  };
+  actions[btn.dataset.action]?.();
+});
+
 // ---------- Session guard ----------
 async function guardSession() {
   try {
@@ -29,7 +45,6 @@ async function guardSession() {
 function bindLogout() {
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try { await API.post('/api/auth/logout', {}); } catch (e) { /* ignore */ }
-    sessionStorage.removeItem('shereboy_admin_token');
     window.location.href = '/admin/login.html';
   });
 }
@@ -90,8 +105,8 @@ function renderCategoryTable(categories) {
       <td class="num">${c.product_count}</td>
       <td style="max-width:260px;">${escapeHtml(c.description || '—')}</td>
       <td class="row-actions">
-        <button class="btn btn-ghost btn-sm" onclick="editCategory(${c.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id})">Delete</button>
+        <button class="btn btn-ghost btn-sm" data-action="edit-category" data-id="${Number(c.id)}">Edit</button>
+        <button class="btn btn-danger btn-sm" data-action="delete-category" data-id="${Number(c.id)}">Delete</button>
       </td>
     </tr>`).join('');
 }
@@ -183,7 +198,7 @@ function renderProductsTable(items) {
   body.innerHTML = items.map(p => `
     <tr>
       <td style="display:flex;align-items:center;gap:10px;">
-        <img class="table-thumb" src="${(p.images && p.images[0]) || '/images/placeholder-product.svg'}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />
+        <img class="table-thumb" src="${escapeHtml((p.images && p.images[0]) || '/images/placeholder-product.svg')}" alt="" loading="lazy" />
         <span>${escapeHtml(p.name)}</span>
       </td>
       <td>${escapeHtml(p.category_name || 'Uncategorized')}</td>
@@ -194,8 +209,8 @@ function renderProductsTable(items) {
         ${p.is_deal ? '<span class="pill pill-blue">Deal</span>' : ''}
       </td>
       <td class="row-actions">
-        <button class="btn btn-ghost btn-sm" onclick='editProduct(${p.id})'>Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">Delete</button>
+        <button class="btn btn-ghost btn-sm" data-action="edit-product" data-id="${Number(p.id)}">Edit</button>
+        <button class="btn btn-danger btn-sm" data-action="delete-product" data-id="${Number(p.id)}">Delete</button>
       </td>
     </tr>`).join('');
 }
@@ -278,7 +293,7 @@ function addSpecRow(key = '', value = '') {
   row.innerHTML = `
     <input type="text" placeholder="Spec name (e.g. Battery Life)" class="spec-key" value="${escapeHtml(key)}" />
     <input type="text" placeholder="Value (e.g. 30 hours)" class="spec-value" value="${escapeHtml(value)}" />
-    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" aria-label="Remove specification">${icon('close')}</button>`;
+    <button type="button" class="btn btn-ghost btn-sm" data-action="remove-row" aria-label="Remove specification">${icon('close')}</button>`;
   wrap.appendChild(row);
 }
 
@@ -326,8 +341,8 @@ function renderExistingImages() {
   const wrap = document.getElementById('existingImages');
   wrap.innerHTML = existingImagesForEdit.map((img, i) => `
     <div class="image-preview">
-      <img src="${img}" alt="" onerror="this.onerror=null;this.src='/images/placeholder-product.svg';" />
-      <button type="button" onclick="removeExistingImage(${i})" aria-label="Remove image">${icon('close')}</button>
+      <img src="${escapeHtml(img)}" alt="" />
+      <button type="button" data-action="remove-image" data-id="${i}" aria-label="Remove image">${icon('close')}</button>
     </div>`).join('');
 }
 

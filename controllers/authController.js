@@ -6,6 +6,7 @@
 
 const { supabase, supabaseAdmin } = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
+const { isAdmin } = require('../middleware/auth');
 
 const isProd = () => process.env.NODE_ENV === 'production';
 
@@ -23,7 +24,8 @@ exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error || !data?.session) {
+  // Same reply for non-administrators, so this can't be used to probe accounts
+  if (error || !data?.session || !isAdmin(data.user)) {
     return res.status(401).json({ success: false, message: 'Invalid email or password.' });
   }
 
@@ -39,7 +41,6 @@ exports.login = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Logged in successfully.',
-    token: access_token, // also returned for clients that prefer Authorization headers
     user: shapeUser(data.user)
   });
 });

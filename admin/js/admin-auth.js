@@ -17,10 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     msgBox.style.display = 'none';
 
     try {
-      const data = await API.post('/api/auth/login', { email, password });
-      // Also keep the token in sessionStorage as a fallback for the
-      // Authorization header, in case third-party cookies are blocked.
-      sessionStorage.setItem('shereboy_admin_token', data.token);
+      // The session lives in an httpOnly cookie that page scripts can't read
+      await API.post('/api/auth/login', { email, password });
       window.location.href = '/admin/dashboard.html';
     } catch (err) {
       setFormMessage(msgBox, err.message, 'error');
