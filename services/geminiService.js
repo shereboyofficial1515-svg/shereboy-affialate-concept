@@ -57,9 +57,10 @@ ${await buildCatalogContext()}`;
     { role: 'user', parts: [{ text: userMessage }] }
   ];
 
-  const response = await fetch(`${GEMINI_URL}?key=${process.env.GEMINI_API_KEY}`, {
+  const response = await fetch(GEMINI_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    // In a header, so the key can't end up in any URL log
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
     body: JSON.stringify({
       system_instruction: { parts: [{ text: systemInstruction }] },
       contents,

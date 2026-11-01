@@ -6,6 +6,12 @@ const { requireAuth } = require('../middleware/auth');
 const { validateProduct } = require('../middleware/validate');
 const upload = require('../middleware/upload');
 
+// Ids are numbers; anything else is simply not found
+router.param('id', (req, res, next, id) => {
+  if (!/^\d{1,12}$/.test(id)) return res.status(404).json({ success: false, message: 'Not found.' });
+  next();
+});
+
 // Public
 router.get('/', productController.list);
 router.get('/stats', requireAuth, productController.stats); // must come before /:slug-style routes below in usage

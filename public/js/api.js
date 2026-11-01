@@ -43,6 +43,16 @@ const API = {
   }
 };
 
+// A broken product image falls back to the placeholder (image errors don't
+// bubble, so this listens in the capture phase; inline handlers are blocked by the CSP)
+document.addEventListener('error', (e) => {
+  const img = e.target;
+  if (img && img.tagName === 'IMG' && !img.dataset.fellBack) {
+    img.dataset.fellBack = '1';
+    img.src = '/images/placeholder-product.svg';
+  }
+}, true);
+
 function formatNaira(value) {
   return '₦' + Number(value).toLocaleString('en-NG', { maximumFractionDigits: 0 });
 }

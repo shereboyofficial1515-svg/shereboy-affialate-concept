@@ -5,14 +5,17 @@
 const validator = require('validator');
 
 const VALID_AVAILABILITY = ['in_stock', 'out_of_stock', 'limited'];
+const LINK_RULES = { require_protocol: true, protocols: ['http', 'https'] };
+const isText = (v, max) => typeof v === 'string' && v.length <= max;
 
 function validateProduct(req, res, next) {
   const { name, price, affiliate_link, discount_percent, availability } = req.body;
   const errors = [];
 
-  if (!name || name.trim().length < 3) errors.push('Product name must be at least 3 characters.');
-  if (price === undefined || isNaN(Number(price)) || Number(price) < 0) errors.push('Price must be a valid positive number.');
-  if (!affiliate_link || !validator.isURL(affiliate_link, { require_protocol: true })) {
+  if (!isText(name, 200) || name.trim().length < 3) errors.push('Product name must be 3-200 characters.');
+  if (req.body.description !== undefined && !isText(req.body.description, 10000)) errors.push('Description is too long.');
+  if (price === undefined || !Number.isFinite(Number(price)) || Number(price) < 0) errors.push('Price must be a valid positive number.');
+  if (!isText(affiliate_link, 2000) || !validator.isURL(affiliate_link, LINK_RULES)) {
     errors.push('Affiliate link must be a valid URL (including https://).');
   }
   if (discount_percent !== undefined && (isNaN(Number(discount_percent)) || Number(discount_percent) < 0 || Number(discount_percent) > 100)) {
@@ -27,12 +30,13 @@ function validateProduct(req, res, next) {
 }
 
 function validateContact(req, res, next) {
-  const { name, email, message } = req.body;
+  const { name, email, subject, message } = req.body;
   const errors = [];
 
-  if (!name || name.trim().length < 2) errors.push('Please enter your name.');
-  if (!email || !validator.isEmail(email)) errors.push('Please enter a valid email address.');
-  if (!message || message.trim().length < 10) errors.push('Message must be at least 10 characters.');
+  if (!isText(name, 150) || name.trim().length < 2) errors.push('Please enter your name.');
+  if (!isText(email, 254) || !validator.isEmail(email)) errors.push('Please enter a valid email address.');
+  if (subject !== undefined && subject !== null && !isText(subject, 200)) errors.push('Subject is too long.');
+  if (!isText(message, 5000) || message.trim().length < 10) errors.push('Message must be 10-5,000 characters.');
 
   if (errors.length) return res.status(400).json({ success: false, errors });
   next();
@@ -40,7 +44,7 @@ function validateContact(req, res, next) {
 
 function validateSubscriber(req, res, next) {
   const { email } = req.body;
-  if (!email || !validator.isEmail(email)) {
+  if (!isText(email, 254) || !validator.isEmail(email)) {
     return res.status(400).json({ success: false, errors: ['Please enter a valid email address.'] });
   }
   next();
@@ -49,8 +53,8 @@ function validateSubscriber(req, res, next) {
 function validateAuth(req, res, next) {
   const { email, password } = req.body;
   const errors = [];
-  if (!email || !validator.isEmail(email)) errors.push('Please enter a valid email address.');
-  if (!password || password.length < 6) errors.push('Password must be at least 6 characters.');
+  if (!isText(email, 254) || !validator.isEmail(email)) errors.push('Please enter a valid email address.');
+  if (!isText(password, 200) || password.length < 6) errors.push('Password must be at least 6 characters.');
   if (errors.length) return res.status(400).json({ success: false, errors });
   next();
 }
