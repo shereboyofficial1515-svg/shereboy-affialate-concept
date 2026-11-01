@@ -6,6 +6,9 @@ const router = express.Router();
 const path = require('path');
 const { requireAuthPage } = require('../middleware/auth');
 
+// Full-page previews of unpublished legal pages
+router.get('/preview/page/:slug', requireAuthPage, require('../controllers/siteAdminController').previewPage);
+
 router.get('/dashboard.html', requireAuthPage, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'views', 'admin', 'dashboard.html'));
 });

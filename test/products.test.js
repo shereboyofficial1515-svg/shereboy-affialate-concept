@@ -114,7 +114,7 @@ test('product page carries title, preview tags and structured data from the serv
   const { status, text } = await app.get('/product-details.html?slug=product-2');
   assert.equal(status, 200);
   assert.match(text, /<title id="pageTitle">Product 2 — SHEREBOY AFFILIATE CONCEPT<\/title>/);
-  assert.ok(text.includes(`property="og:image" content="${STORED}"`));
+  assert.ok(text.includes(`property="og:image" content="${STORED.replace('.webp', '-w480.jpg')}"`), 'link previews get the JPEG copy');
   const ld = JSON.parse(text.match(/<script type="application\/ld\+json">(.*?)<\/script>/)[1]);
   assert.equal(ld['@type'], 'Product');
   assert.equal(ld.offers.priceCurrency, 'NGN');

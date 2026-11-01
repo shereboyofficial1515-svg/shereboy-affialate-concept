@@ -34,8 +34,8 @@
     <section class="hero">
       <div class="container hero-grid">
         <div>
-          <h1>Smart finds.<br /><em>Honest prices.</em></h1>
-          <p class="lead">Hand-picked products from online retailers, priced in naira, with a clear view of what you save before you click through.</p>
+          <h1 id="heroTitle">Smart finds.<br /><em>Honest prices.</em></h1>
+          <p class="lead" id="heroLead">Hand-picked products from online retailers, priced in naira, with a clear view of what you save before you click through.</p>
           <form class="hero-search" id="heroSearch" role="search" action="/products.html">
             <div class="hero-search-field">
               <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></span>
@@ -65,6 +65,9 @@
       <div class="container"><div class="empty-state"><p>We're adding new products. Please check back soon.</p></div></div>
     </section>
 
+    <section class="banner-slot" data-banner-slot="home_top" hidden><div class="container"></div></section>
+
+    <div id="homeSections">
     <section class="section" id="section-categories" hidden>
       <div class="container">
         <div class="section-head">
@@ -132,7 +135,7 @@
       </div>
     </section>
 
-    <section class="section section-alt">
+    <section class="section section-alt" id="section-faq">
       <div class="container">
         <div class="section-head">
           <div><span class="eyebrow">Have a question?</span><h2>Quick answers</h2></div>
@@ -142,7 +145,7 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="section-newsletter">
       <div class="container">
         <div class="newsletter">
           <div>
@@ -153,6 +156,9 @@
         </div>
       </div>
     </section>
+    </div>
+
+    <section class="banner-slot" data-banner-slot="home_bottom" hidden><div class="container"></div></section>
   </main>
 
   <div id="site-footer"></div>

@@ -43,7 +43,8 @@ app.use((req, res, next) => {
     "script-src-attr 'none'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: https:",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' https:",
     "connect-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -63,7 +64,9 @@ app.post('/api/email/webhook', express.raw({ type: '*/*', limit: '1mb' }), requi
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(xss());
+// Dashboard routes keep their rich text intact and clean it themselves (services/richText.js)
+const xssClean = xss();
+app.use((req, res, next) => (req.path.startsWith('/api/admin/') ? next() : xssClean(req, res, next)));
 
 // Global rate limiter — protects every route from abuse.
 const globalLimiter = rateLimit({
@@ -104,9 +107,15 @@ app.use('/api/public', require('./routes/publicRoutes'));
 app.get('/api/home', require('./controllers/homeController').home);
 app.use('/api/newsletter', require('./routes/newsletterRoutes'));
 app.use('/api/admin/email', require('./routes/emailAdminRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Pages and files generated on the server: product pages with their SEO data, sitemap
 app.use(require('./routes/seoRoutes'));
+const siteAdmin = require('./controllers/siteAdminController');
+app.get('/site-config.js', siteAdmin.siteConfigJs);
+app.get('/theme.css', siteAdmin.themeCssFile);
+app.get('/robots.txt', siteAdmin.robots);
+app.get(['/', /^\/[a-z0-9-]+\.html$/], require('./services/siteRenderer').serveHtml);
 
 // ---------- Protected admin PAGE (checked before static serving) ----------
 app.use('/admin', require('./routes/adminPageRoutes'));
@@ -138,13 +147,14 @@ app.use((req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ success: false, message: 'Endpoint not found.' });
   }
-  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  const { applySettings, template } = require('./services/siteRenderer');
+  res.status(404).type('html').send(applySettings(template('404.html'), require('./services/settings').cached()));
 });
 
 // ---------- Central error handler ----------
 app.use((err, req, res, next) => {
   if (err.name === 'MulterError') {
-    return res.status(400).json({ success: false, message: err.code === 'LIMIT_FILE_SIZE' ? 'Each image must be 5MB or smaller.' : 'That upload could not be accepted.' });
+    return res.status(400).json({ success: false, message: err.code === 'LIMIT_FILE_SIZE' ? 'That file is too large.' : 'That upload could not be accepted.' });
   }
   // Expected client errors (bad query parameters, rejected uploads) aren't server faults
   const clientError = (err.status && err.status < 500) || (err.message && err.message.includes('Only JPG'));
@@ -154,6 +164,8 @@ app.use((err, req, res, next) => {
   }
   res.status(err.status || 500).json({
     success: false,
+    // Field-by-field problems, shown next to each input in the product editor
+    ...(err.fieldErrors ? { fieldErrors: err.fieldErrors, errors: Object.values(err.fieldErrors) } : {}),
     // err.expose marks messages written for the client (e.g. validation errors)
     message: err.expose || process.env.NODE_ENV !== 'production' ? err.message : 'Something went wrong.'
   });
@@ -161,6 +173,11 @@ app.use((err, req, res, next) => {
 
 // Tests import the app and choose their own port
 if (require.main === module) {
+  // Publish anything whose scheduled time has arrived
+  const { publishDue } = require('./controllers/productAdminController');
+  publishDue();
+  setInterval(publishDue, 60 * 1000).unref();
+
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`\nSHEREBOY AFFILIATE CONCEPT running at http://localhost:${PORT}`);

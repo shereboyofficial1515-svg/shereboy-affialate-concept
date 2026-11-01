@@ -89,7 +89,7 @@ function productSkeletonsHTML(count = 4) {
 function categoryCardHTML(c) {
   return `
   <a href="/products.html?category=${encodeURIComponent(c.slug)}" class="cat-card">
-    <div class="cat-icon-wrap">${icon(c.icon || 'default')}</div>
+    <div class="cat-icon-wrap${c.image_url ? ' has-image' : ''}">${c.image_url ? `<img src="${escapeHtml(c.image_url)}" alt="" loading="lazy" decoding="async" />` : icon(c.icon || 'default')}</div>
     <div>
       <h3>${escapeHtml(c.name)}</h3>
       <span class="cat-count">${c.product_count} product${c.product_count === 1 ? '' : 's'}</span>

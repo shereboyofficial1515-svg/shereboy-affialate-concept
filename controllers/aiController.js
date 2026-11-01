@@ -21,7 +21,7 @@ exports.chat = async (req, res) => {
     console.error('Gemini assistant error:', err.message);
     res.status(502).json({
       success: false,
-      message: "The assistant couldn't reach Gemini right now. Please try again shortly."
+      message: "The assistant isn't available right now. Please try again shortly."
     });
   }
 };

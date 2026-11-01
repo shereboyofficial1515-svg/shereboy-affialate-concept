@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePermission } = require('../middleware/auth');
 const { validateProduct } = require('../middleware/validate');
 const upload = require('../middleware/upload');
 const rateLimit = require('express-rate-limit');
@@ -29,8 +29,8 @@ router.get('/:id', productController.getById);
 router.post('/:id/click', clickLimiter, productController.recordClick);
 
 // Admin only
-router.post('/', requireAuth, upload.array('images', 8), validateProduct, productController.create);
-router.put('/:id', requireAuth, upload.array('images', 8), validateProduct, productController.update);
-router.delete('/:id', requireAuth, productController.remove);
+router.post('/', requireAuth, requirePermission('products.publish'), upload.array('images', 8), validateProduct, productController.create);
+router.put('/:id', requireAuth, requirePermission('products.publish'), upload.array('images', 8), validateProduct, productController.update);
+router.delete('/:id', requireAuth, requirePermission('products.publish'), productController.remove);
 
 module.exports = router;

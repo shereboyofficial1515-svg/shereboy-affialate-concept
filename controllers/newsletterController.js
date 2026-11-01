@@ -3,6 +3,7 @@
 
 const asyncHandler = require('../utils/asyncHandler');
 const subscriptions = require('../services/email/subscriptions');
+const settings = require('../services/settings');
 
 // Identical for new and already-subscribed addresses, so this form can't reveal who is on the list
 const CHECK_INBOX = 'Almost done! Check your inbox and tap the link to confirm your subscription.';
@@ -10,6 +11,9 @@ const CHECK_INBOX = 'Almost done! Check your inbox and tap the link to confirm y
 exports.subscribe = asyncHandler(async (req, res) => {
   // Hidden field that people can't see and form-filling bots do: pretend it worked
   if (req.body.website) return res.status(201).json({ success: true, message: CHECK_INBOX });
+
+  const { email: emailSettings } = await settings.loadAll();
+  if (!emailSettings.newsletter_enabled) return res.status(403).json({ success: false, message: 'Newsletter signups are closed right now.' });
 
   const outcome = await subscriptions.subscribe(req.body.email, req.body.source === 'footer' ? 'footer' : 'website');
   if (outcome === 'failed') {

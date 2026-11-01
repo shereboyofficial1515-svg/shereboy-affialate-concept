@@ -164,6 +164,10 @@ async function openCampaignModal(campaign, preset) {
   document.getElementById('campaignFormMsg').style.display = 'none';
   renderProductPicker(values.product_ids || []);
   document.getElementById('campaignModalOverlay').classList.add('open');
+  // Only offered when this feature is on and a provider is connected
+  API.get('/api/admin/ai/available').then(({ configured, actions }) => {
+    document.getElementById('campaignAi').hidden = !(configured && actions.email);
+  }).catch(() => {});
 }
 
 // A weekly newsletter starts from what was added in the last 7 days, then the
@@ -174,7 +178,8 @@ async function openWeeklyCampaign() {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const fresh = campaignProducts.filter((p) => new Date(p.date_added).getTime() > weekAgo);
     const savings = [...campaignProducts].sort((a, b) => b.discount_percent - a.discount_percent);
-    const picks = [...new Map([...fresh, ...savings].filter((p) => !p.images_missing).map((p) => [p.id, p])).values()].slice(0, 6).map((p) => p.id);
+    const { settings } = await API.get('/api/admin/settings');
+    const picks = [...new Map([...fresh, ...savings].filter((p) => !p.images_missing).map((p) => [p.id, p])).values()].slice(0, settings.email.announcement_default_products).map((p) => p.id);
     openCampaignModal(null, { ...WEEKLY_TEMPLATE, kind: 'weekly', product_ids: picks });
   } catch (err) { alert(err.message); }
 }
@@ -186,6 +191,7 @@ function bindCampaignModal() {
   document.getElementById('cancelCampaignBtn').addEventListener('click', close);
   document.getElementById('newCampaignBtn').addEventListener('click', () => openCampaignModal().catch((err) => alert(err.message)));
   document.getElementById('weeklyCampaignBtn').addEventListener('click', openWeeklyCampaign);
+  document.getElementById('campaignAi').addEventListener('click', draftCampaignWithAi);
 
   document.getElementById('campaignForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -212,6 +218,23 @@ function bindCampaignModal() {
       submitBtn.disabled = false;
     }
   });
+}
+
+// Fills the form from the chosen products. Nothing sends until an admin presses Send.
+async function draftCampaignWithAi(e) {
+  const chosen = [...document.querySelectorAll('#campaignProductList input:checked')].map((input) => campaignProducts.find((p) => p.id === Number(input.value))).filter(Boolean);
+  const text = chosen.map((p) => `${String(p.name).trim()}: ${formatNaira(p.final_price)}`).join('\n');
+  if (!text && !document.getElementById('campaignBody').value.trim()) return toast('Choose some products or write a few notes first.', 'error');
+  e.target.disabled = true;
+  try {
+    const { fields, flags } = await API.post('/api/admin/ai/generate', { action: 'email', text: `${document.getElementById('campaignBody').value}\n\nProducts:\n${text}` });
+    if (fields.subject) document.getElementById('campaignSubject').value = String(fields.subject).slice(0, 150);
+    if (fields.heading) document.getElementById('campaignHeading').value = String(fields.heading).slice(0, 150);
+    if (fields.preheader) document.getElementById('campaignPreheader').value = String(fields.preheader).slice(0, 150);
+    if (fields.body) document.getElementById('campaignBody').value = fields.body;
+    toast(flags.length ? `Drafted. Check these aren't invented: ${flags.join(', ')}` : 'Drafted. Review it before saving.', flags.length ? 'error' : 'success');
+  } catch (err) { toast(err.message, 'error'); } finally { e.target.disabled = false; }
+  return undefined;
 }
 
 async function campaignAction(action, id) {
@@ -327,6 +350,7 @@ document.addEventListener('click', async (e) => {
   if (pager) {
     if (pager.dataset.pager === 'subscribers') { subscriberFilter.page = Number(pager.dataset.page); fetchSubscribers(); }
     if (pager.dataset.pager === 'logs') { logPage = Number(pager.dataset.page); loadLogs(); }
+    if (pager.dataset.pager === 'products') { productFilter.page = Number(pager.dataset.page); loadProducts(); }
     return;
   }
   const testi = e.target.closest('[data-testi-action]');

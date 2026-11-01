@@ -7,10 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadProduct() {
-  const slug = new URLSearchParams(window.location.search).get('slug');
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  const previewId = params.get('preview');
   const section = document.getElementById('productSection');
 
-  if (!slug) {
+  if (!slug && !/^\d+$/.test(previewId || '')) {
     section.innerHTML = `<div class="container">${emptyStateHTML('No product was specified.', 'warning')}<p style="text-align:center;"><a class="btn btn-primary" href="/products.html">Browse products</a></p></div>`;
     return;
   }
@@ -18,14 +20,23 @@ async function loadProduct() {
   section.innerHTML = `<div class="container pd-grid" aria-busy="true"><div><span class="sk sk-media" style="border-radius:18px;"></span></div><div><span class="sk sk-line sk-w40"></span><br /><span class="sk sk-line sk-w80" style="height:26px;"></span><br /><span class="sk sk-line sk-w40" style="height:30px;"></span><span class="sk sk-btn"></span></div></div>`;
 
   try {
-    const { product, related } = await API.get(`/api/products/slug/${encodeURIComponent(slug)}`);
+    // A preview needs an admin session: the API refuses everyone else
+    const { product, related } = await API.get(previewId ? `/api/admin/products/${previewId}/preview` : `/api/products/slug/${encodeURIComponent(slug)}`);
     renderProduct(product);
+    if (previewId) {
+      const note = document.createElement('div');
+      note.className = 'preview-banner';
+      note.textContent = 'Preview of your unpublished version. Visitors can’t see this page.';
+      document.getElementById('main').prepend(note);
+    }
     if (related && related.length) {
       document.getElementById('relatedSection').hidden = false;
       document.getElementById('relatedGrid').innerHTML = related.map(productCardHTML).join('');
     }
   } catch (err) {
-    if (err.message === 'Product not found.') {
+    if (previewId && (err.status === 401 || err.status === 403)) {
+      section.innerHTML = `<div class="container">${emptyStateHTML('Sign in to the dashboard to preview this product.', 'warning')}</div>`;
+    } else if (err.message === 'Product not found.') {
       section.innerHTML = `<div class="container">${emptyStateHTML("We couldn't find that product. It may have been removed.", 'search')}<p style="text-align:center;"><a class="btn btn-primary" href="/products.html">Browse products</a></p></div>`;
     } else {
       section.innerHTML = `<div class="container">${errorStateHTML(`We couldn't load this product. ${err.message}`)}</div>`;
@@ -71,12 +82,13 @@ function renderProduct(p) {
         ${savings > 0 ? `<span class="savings">You save ${formatNaira(savings)}</span>` : ''}
       </div>
       <div class="pcard-status">${stockHTML(p.availability)}</div>
+      ${p.short_description ? `<p class="pd-short">${escapeHtml(p.short_description)}</p>` : ''}
       <div class="pd-actions">
-        <a href="${escapeHtml(p.affiliate_link)}" target="_blank" rel="noopener sponsored nofollow" data-track-click="${Number(p.id)}" class="btn btn-primary">View Deal ${icon('external-link')}</a>
+        <a href="${escapeHtml(p.affiliate_link || '#')}" target="_blank" rel="noopener sponsored nofollow" data-track-click="${Number(p.id)}" class="btn btn-primary">View Deal ${icon('external-link')}</a>
         <a href="/products.html" class="btn btn-outline">${icon('arrow-left')} All products</a>
       </div>
       <p class="pd-disclosure">Opens the retailer's site. We may earn a commission at no extra cost to you. Check the final price there before you buy.</p>
-      <p class="pd-description">${escapeHtml(p.description || '')}</p>
+      ${p.description_format === 'html' ? `<div class="pd-description is-rich">${p.description || ''}</div>` : `<p class="pd-description">${escapeHtml(p.description || '')}</p>`}
       ${specRows ? `<div class="pd-specs"><h3 style="margin-bottom:12px;">Specifications</h3><table>${specRows}</table></div>` : ''}
     </div>
   </div>`;

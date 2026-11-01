@@ -43,7 +43,7 @@ function parseRow(row) {
 // a database where the migration hasn't run yet.
 function optionalColumns(data) {
   const columns = {};
-  ['is_verified', 'rating', 'rating_count'].forEach((key) => {
+  ['is_verified', 'rating', 'rating_count', 'short_description', 'seo_title', 'seo_description', 'status', 'description_format'].forEach((key) => {
     if (data[key] !== undefined) columns[key] = data[key];
   });
   return columns;
@@ -70,7 +70,9 @@ const Product = {
       page = 1,
       perPage = 12,
       featuredOnly = false,
-      dealOnly = false
+      dealOnly = false,
+      status,
+      includeAll = false // the dashboard sees every status; everyone else only what's published
     } = options;
 
     // Filtering by the joined category's slug requires an INNER join
@@ -82,6 +84,8 @@ const Product = {
 
     let query = supabaseAdmin.from('products').select(selectCols, { count: 'exact' });
 
+    if (status) query = query.eq('status', status);
+    else if (!includeAll) query = query.eq('status', 'published');
     if (q) {
       const term = sanitizeSearchTerm(q);
       if (term) query = query.or(`name.ilike.%${term}%,description.ilike.%${term}%`);
@@ -137,6 +141,7 @@ const Product = {
       .from('products')
       .select('*, category:categories(name, slug)')
       .eq('category_id', categoryId)
+      .eq('status', 'published')
       .neq('id', excludeId)
       .order('date_added', { ascending: false })
       .limit(limit);
@@ -200,6 +205,15 @@ const Product = {
     const { error } = await supabaseAdmin.from('products').delete().eq('id', id);
     throwIfError(error, 'Failed to delete product');
     return true;
+  },
+
+  /** How many products are in each workflow state. */
+  async statusCounts() {
+    const { data, error } = await supabaseAdmin.from('products').select('status');
+    throwIfError(error, 'Failed to count products');
+    const counts = { draft: 0, pending_review: 0, published: 0, scheduled: 0, archived: 0 };
+    (data || []).forEach(({ status }) => { counts[status] = (counts[status] || 0) + 1; });
+    return counts;
   },
 
   async stats() {

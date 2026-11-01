@@ -4,7 +4,7 @@ const router = express.Router();
 const contactController = require('../controllers/contactController');
 const newsletterController = require('../controllers/newsletterController');
 const { signupLimiter } = require('./newsletterRoutes');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePermission } = require('../middleware/auth');
 const { validateContact, validateSubscriber } = require('../middleware/validate');
 const rateLimit = require('express-rate-limit');
 
@@ -19,6 +19,6 @@ const formLimiter = rateLimit({
 router.post('/message', formLimiter, validateContact, contactController.sendMessage);
 // Older path for the same signup, kept for pages still open or cached in browsers
 router.post('/subscribe', signupLimiter, validateSubscriber, newsletterController.subscribe);
-router.get('/messages', requireAuth, contactController.listMessages);
+router.get('/messages', requireAuth, requirePermission('email.manage'), contactController.listMessages);
 
 module.exports = router;

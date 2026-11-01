@@ -1,6 +1,5 @@
 // admin/js/dashboard.js
 let allCategories = [];
-let existingImagesForEdit = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('[data-icon]').forEach(el => {
@@ -8,12 +7,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (span) span.innerHTML = ICONS[el.dataset.icon] || '';
   });
   await guardSession();
+  applyPermissions();
   bindNav();
   bindLogout();
-  bindProductModal();
+  bindProductList();
   bindCategoryModal();
-  loadOverview();
-  loadCategories();
+  if (Permissions.can('products.publish')) loadCategories();
+  route();
 });
 
 // Table and form buttons (inline onclick handlers are blocked by the CSP)
@@ -23,11 +23,7 @@ document.addEventListener('click', (e) => {
   const id = Number(btn.dataset.id);
   const actions = {
     'edit-category': () => window.editCategory(id),
-    'delete-category': () => window.deleteCategory(id),
-    'edit-product': () => window.editProduct(id),
-    'delete-product': () => window.deleteProduct(id),
-    'remove-image': () => window.removeExistingImage(id),
-    'remove-row': () => btn.parentElement.remove()
+    'delete-category': () => window.deleteCategory(id)
   };
   actions[btn.dataset.action]?.();
 });
@@ -36,7 +32,8 @@ document.addEventListener('click', (e) => {
 async function guardSession() {
   try {
     const data = await API.get('/api/auth/me');
-    document.getElementById('adminName').textContent = data.user.name;
+    document.getElementById('adminName').textContent = `${data.user.name} (${data.user.role})`;
+    Permissions.list = data.user.permissions;
   } catch (err) {
     window.location.href = '/admin/login.html';
   }
@@ -49,26 +46,107 @@ function bindLogout() {
   });
 }
 
-// ---------- Sidebar navigation ----------
+// ---------- Navigation: every view has its own address, so Back and refresh work ----------
+const VIEW_LOADERS = {
+  overview: () => loadOverview(),
+  analytics: () => loadAnalyticsView(),
+  products: () => loadProducts(),
+  categories: () => loadCategories(),
+  media: () => loadMediaView(),
+  homepage: () => loadHomepageView(),
+  banners: () => loadBannersView(),
+  testimonials: () => loadTestimonials(),
+  pages: () => loadPagesView(),
+  ai: () => loadAiCentreView(),
+  teach: () => loadTeachView(),
+  knowledge: () => loadKnowledgeView(),
+  'ai-activity': () => loadAiActivityView(),
+  subscribers: () => loadSubscribers(),
+  campaigns: () => loadCampaigns(),
+  logs: () => loadLogs(),
+  messages: () => loadMessages(),
+  settings: () => loadIdentityView(),
+  appearance: () => loadAppearanceView(),
+  seo: () => loadSeoView(),
+  'email-settings': () => loadEmailSettingsView(),
+  regional: () => loadRegionalView(),
+  users: () => loadUsersView(),
+  audit: () => loadAuditView(),
+  health: () => loadHealthView()
+};
+
+function showView(view, title) {
+  document.querySelectorAll('main section[id^="view-"]').forEach(s => { s.hidden = true; });
+  const section = document.getElementById(`view-${view}`);
+  section.hidden = false;
+  document.getElementById('viewTitle').textContent = title;
+  window.scrollTo(0, 0);
+}
+
+function route() {
+  const hash = location.hash.slice(1) || 'overview';
+  const productMatch = hash.match(/^product-(\d+)$/);
+  document.querySelectorAll('.side-nav button').forEach(b => {
+    const active = b.dataset.view === hash || (productMatch && b.dataset.view === 'products');
+    b.classList.toggle('active', active);
+    if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  closeMenu();
+  if (productMatch) return openProductEditor(Number(productMatch[1]));
+  if (hash === 'new-product') return openProductEditor(null);
+  const button = document.querySelector(`.side-nav button[data-view="${hash}"]`);
+  if (!button || !VIEW_LOADERS[hash] || button.hidden) {
+    location.hash = '#overview';
+    return undefined;
+  }
+  showView(hash, button.dataset.label);
+  return VIEW_LOADERS[hash]();
+}
+
+function closeMenu() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('menuToggle').setAttribute('aria-expanded', 'false');
+}
+
 function bindNav() {
   document.querySelectorAll('.side-nav button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.side-nav button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const view = btn.dataset.view;
-      document.querySelectorAll('main section[id^="view-"]').forEach(s => s.hidden = true);
-      document.getElementById(`view-${view}`).hidden = false;
-      document.getElementById('viewTitle').textContent = btn.dataset.label || btn.textContent.trim();
-
-      if (view === 'products') loadProducts();
-      if (view === 'categories') loadCategories();
-      if (view === 'messages') loadMessages();
-      if (view === 'subscribers') loadSubscribers();
-      if (view === 'campaigns') loadCampaigns();
-      if (view === 'logs') loadLogs();
-      if (view === 'testimonials') loadTestimonials();
-      if (view === 'overview') loadOverview();
+      if (location.hash === `#${btn.dataset.view}`) route();
+      else location.hash = `#${btn.dataset.view}`;
     });
+  });
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    const open = document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('menuToggle').setAttribute('aria-expanded', String(open));
+  });
+  window.addEventListener('hashchange', route);
+}
+
+// Only what this person's role can use appears in the menu
+function applyPermissions() {
+  document.querySelectorAll('[data-perm]').forEach(el => { el.hidden = !Permissions.can(el.dataset.perm); });
+  document.querySelectorAll('.nav-group').forEach(group => {
+    group.hidden = ![...group.querySelectorAll('button')].some(b => !b.hidden);
+  });
+}
+
+function bindProductList() {
+  document.getElementById('addProductBtn').addEventListener('click', () => { location.hash = '#new-product'; });
+  document.getElementById('productStatusTabs').addEventListener('click', (e) => {
+    const tab = e.target.closest('[data-status]');
+    if (!tab) return;
+    productFilter.status = tab.dataset.status;
+    productFilter.page = 1;
+    loadProducts();
+  });
+  let timer;
+  document.getElementById('productSearch').addEventListener('input', (e) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { productFilter.q = e.target.value.trim(); productFilter.page = 1; loadProducts(); }, 300);
+  });
+  document.getElementById('productsTableBody').addEventListener('click', (e) => {
+    const edit = e.target.closest('[data-edit-product]');
+    if (edit) location.hash = `#product-${edit.dataset.editProduct}`;
   });
 }
 
@@ -99,7 +177,6 @@ async function loadCategories() {
     const { categories } = await API.get('/api/categories');
     allCategories = categories;
     renderCategoryTable(categories);
-    renderCategoryDropdown(categories);
   } catch (err) {
     document.getElementById('categoriesTableBody').innerHTML = `<tr><td colspan="5">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
   }
@@ -110,7 +187,7 @@ function renderCategoryTable(categories) {
   if (!categories.length) { body.innerHTML = `<tr><td colspan="5">${emptyStateHTML('No categories yet.')}</td></tr>`; return; }
   body.innerHTML = categories.map(c => `
     <tr>
-      <td style="font-size:1.2rem;">${icon(c.icon || 'default')}</td>
+      <td style="font-size:1.2rem;">${c.image_url ? `<img class="table-thumb" src="${escapeHtml(c.image_url)}" alt="" />` : icon(c.icon || 'default')}</td>
       <td>${escapeHtml(c.name)}</td>
       <td class="num">${c.product_count}</td>
       <td style="max-width:260px;">${escapeHtml(c.description || '—')}</td>
@@ -119,12 +196,6 @@ function renderCategoryTable(categories) {
         <button class="btn btn-danger btn-sm" data-action="delete-category" data-id="${Number(c.id)}">Delete</button>
       </td>
     </tr>`).join('');
-}
-
-function renderCategoryDropdown(categories) {
-  const select = document.getElementById('pCategory');
-  select.innerHTML = '<option value="">Uncategorized</option>' +
-    categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 }
 
 // ---------- Category modal ----------
@@ -146,7 +217,8 @@ function bindCategoryModal() {
     const payload = {
       name: document.getElementById('cName').value,
       icon: document.getElementById('cIcon').value,
-      description: document.getElementById('cDescription').value
+      description: document.getElementById('cDescription').value,
+      image_url: document.getElementById('cImage').value || null
     };
     const msgBox = document.getElementById('categoryFormMsg');
     const submitLabel = submitBtn.textContent;
@@ -171,6 +243,15 @@ function resetCategoryForm() {
   document.getElementById('categoryId').value = '';
   document.getElementById('categoryModalTitle').textContent = 'Add Category';
   document.getElementById('categoryFormMsg').style.display = 'none';
+  setCategoryImage('');
+}
+
+function setCategoryImage(url) {
+  const wrap = document.getElementById('cImage').closest('[data-media-field]');
+  document.getElementById('cImage').value = url || '';
+  wrap.querySelector('img').src = url || '';
+  wrap.querySelector('img').hidden = !url;
+  wrap.querySelector('[data-media-clear]').hidden = !url;
 }
 
 window.editCategory = function (id) {
@@ -180,6 +261,7 @@ window.editCategory = function (id) {
   document.getElementById('cName').value = c.name;
   document.getElementById('cIcon').value = c.icon || '';
   document.getElementById('cDescription').value = c.description || '';
+  setCategoryImage(c.image_url);
   document.getElementById('categoryModalTitle').textContent = 'Edit Category';
   document.getElementById('categoryModalOverlay').classList.add('open');
 };
@@ -189,191 +271,6 @@ window.deleteCategory = async function (id) {
   try {
     await API.del(`/api/categories/${id}`);
     loadCategories();
-  } catch (err) { alert(err.message); }
-};
-
-// ---------- Products: load + table ----------
-async function loadProducts() {
-  try {
-    const { items } = await API.get('/api/products?perPage=100&sort=newest');
-    renderProductsTable(items);
-  } catch (err) {
-    document.getElementById('productsTableBody').innerHTML = `<tr><td colspan="6">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
-  }
-}
-
-function renderProductsTable(items) {
-  const body = document.getElementById('productsTableBody');
-  if (!items.length) { body.innerHTML = `<tr><td colspan="6">${emptyStateHTML('No products yet — click "Add product" to publish your first one.')}</td></tr>`; return; }
-  body.innerHTML = items.map(p => `
-    <tr>
-      <td style="display:flex;align-items:center;gap:10px;">
-        <img class="table-thumb" src="${escapeHtml((p.images && p.images[0]) || '/images/placeholder-product.svg')}" alt="" loading="lazy" />
-        <span>${escapeHtml(p.name)}${p.images_missing ? '<br><span class="pill pill-red">Image missing</span>' : ''}</span>
-      </td>
-      <td>${escapeHtml(p.category_name || 'Uncategorized')}</td>
-      <td class="num">₦${Number(p.final_price).toLocaleString()}</td>
-      <td>${availabilityPill(p.availability)}</td>
-      <td>
-        ${p.is_featured ? '<span class="pill pill-gold">Featured</span> ' : ''}
-        ${p.is_deal ? '<span class="pill pill-blue">Deal</span> ' : ''}
-        ${p.is_verified ? '<span class="pill pill-green">Verified</span>' : ''}
-      </td>
-      <td class="row-actions">
-        <button class="btn btn-ghost btn-sm" data-action="edit-product" data-id="${Number(p.id)}">Edit</button>
-        <button class="btn btn-danger btn-sm" data-action="delete-product" data-id="${Number(p.id)}">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-function availabilityPill(status) {
-  if (status === 'out_of_stock') return '<span class="pill pill-red">Out of stock</span>';
-  if (status === 'limited') return '<span class="pill pill-gold">Limited</span>';
-  return '<span class="pill pill-green">In stock</span>';
-}
-
-// ---------- Product modal ----------
-function bindProductModal() {
-  const overlay = document.getElementById('productModalOverlay');
-  const openModal = () => overlay.classList.add('open');
-  const closeModal = () => { overlay.classList.remove('open'); resetProductForm(); };
-
-  document.getElementById('addProductBtn').addEventListener('click', () => { resetProductForm(); openModal(); });
-  document.getElementById('productModalClose').addEventListener('click', closeModal);
-  document.getElementById('cancelProductBtn').addEventListener('click', closeModal);
-  document.getElementById('addSpecRow').addEventListener('click', () => addSpecRow());
-
-  document.getElementById('productForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn.disabled) return;
-
-    const id = document.getElementById('productId').value;
-    const msgBox = document.getElementById('productFormMsg');
-
-    const formData = new FormData();
-    formData.append('name', document.getElementById('pName').value);
-    formData.append('description', document.getElementById('pDescription').value);
-    formData.append('price', document.getElementById('pPrice').value);
-    formData.append('discount_percent', document.getElementById('pDiscount').value || 0);
-    formData.append('category_id', document.getElementById('pCategory').value);
-    formData.append('availability', document.getElementById('pAvailability').value);
-    formData.append('affiliate_link', document.getElementById('pLink').value);
-    formData.append('is_featured', document.getElementById('pFeatured').checked);
-    formData.append('is_deal', document.getElementById('pDeal').checked);
-    formData.append('is_verified', document.getElementById('pVerified').checked);
-    formData.append('rating', document.getElementById('pRating').value);
-    formData.append('rating_count', document.getElementById('pRatingCount').value);
-    formData.append('specifications', JSON.stringify(collectSpecs()));
-    formData.append('existing_images', JSON.stringify(existingImagesForEdit));
-
-    const files = document.getElementById('pImages').files;
-    for (let i = 0; i < files.length; i++) formData.append('images', files[i]);
-
-    const submitLabel = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Saving…';
-
-    try {
-      if (id) await API.upload(`/api/products/${id}`, formData, 'PUT');
-      else await API.upload('/api/products', formData, 'POST');
-      closeModal();
-      loadProducts();
-      loadOverview();
-    } catch (err) {
-      setFormMessage(msgBox, err.message, 'error');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = submitLabel;
-    }
-  });
-}
-
-function resetProductForm() {
-  document.getElementById('productForm').reset();
-  document.getElementById('productId').value = '';
-  document.getElementById('productModalTitle').textContent = 'Add Product';
-  document.getElementById('productFormMsg').style.display = 'none';
-  document.getElementById('specRows').innerHTML = '';
-  document.getElementById('existingImages').innerHTML = '';
-  existingImagesForEdit = [];
-  addSpecRow();
-}
-
-function addSpecRow(key = '', value = '') {
-  const wrap = document.getElementById('specRows');
-  const row = document.createElement('div');
-  row.className = 'spec-row';
-  row.innerHTML = `
-    <input type="text" placeholder="Spec name (e.g. Battery Life)" class="spec-key" value="${escapeHtml(key)}" />
-    <input type="text" placeholder="Value (e.g. 30 hours)" class="spec-value" value="${escapeHtml(value)}" />
-    <button type="button" class="btn btn-ghost btn-sm" data-action="remove-row" aria-label="Remove specification">${icon('close')}</button>`;
-  wrap.appendChild(row);
-}
-
-function collectSpecs() {
-  const specs = {};
-  document.querySelectorAll('.spec-row').forEach(row => {
-    const k = row.querySelector('.spec-key').value.trim();
-    const v = row.querySelector('.spec-value').value.trim();
-    if (k) specs[k] = v;
-  });
-  return specs;
-}
-
-window.editProduct = async function (id) {
-  try {
-    const { product } = await API.get(`/api/products/${id}`);
-    document.getElementById('productModalTitle').textContent = 'Edit Product';
-    document.getElementById('productId').value = product.id;
-    document.getElementById('pName').value = product.name;
-    document.getElementById('pDescription').value = product.description || '';
-    document.getElementById('pPrice').value = product.price;
-    document.getElementById('pDiscount').value = product.discount_percent || 0;
-    document.getElementById('pCategory').value = product.category_id || '';
-    document.getElementById('pAvailability').value = product.availability;
-    document.getElementById('pLink').value = product.affiliate_link;
-    document.getElementById('pFeatured').checked = product.is_featured;
-    document.getElementById('pDeal').checked = product.is_deal;
-    document.getElementById('pVerified').checked = !!product.is_verified;
-    document.getElementById('pRating').value = product.rating ?? '';
-    document.getElementById('pRatingCount').value = product.rating_count ?? '';
-
-    document.getElementById('specRows').innerHTML = '';
-    const specs = product.specifications || {};
-    if (Object.keys(specs).length) {
-      Object.entries(specs).forEach(([k, v]) => addSpecRow(k, v));
-    } else {
-      addSpecRow();
-    }
-
-    existingImagesForEdit = product.images || [];
-    renderExistingImages();
-
-    document.getElementById('productModalOverlay').classList.add('open');
-  } catch (err) { alert(err.message); }
-};
-
-function renderExistingImages() {
-  const wrap = document.getElementById('existingImages');
-  wrap.innerHTML = existingImagesForEdit.map((img, i) => `
-    <div class="image-preview">
-      <img src="${escapeHtml(img)}" alt="" />
-      <button type="button" data-action="remove-image" data-id="${i}" aria-label="Remove image">${icon('close')}</button>
-    </div>`).join('');
-}
-
-window.removeExistingImage = function (index) {
-  existingImagesForEdit.splice(index, 1);
-  renderExistingImages();
-};
-
-window.deleteProduct = async function (id) {
-  if (!confirm('Delete this product? This cannot be undone.')) return;
-  try {
-    await API.del(`/api/products/${id}`);
-    loadProducts();
-    loadOverview();
   } catch (err) { alert(err.message); }
 };
 

@@ -5,6 +5,7 @@
 // ones (bad address, unverified domain) fail immediately.
 
 const { Resend } = require('resend');
+const settings = require('../settings');
 
 const MAX_ATTEMPTS = 3;
 const BASE_DELAY_MS = Number(process.env.EMAIL_RETRY_BASE_MS) || 800;
@@ -15,8 +16,15 @@ function resend() {
   return client;
 }
 
+/** From the Email Settings tab if filled in, otherwise the EMAIL_FROM variable. */
+function senderAddress() {
+  const { email } = settings.cached();
+  if (email.sender_email) return email.sender_name ? `${email.sender_name.replace(/["<>]/g, '')} <${email.sender_email}>` : email.sender_email;
+  return process.env.EMAIL_FROM || null;
+}
+
 function isConfigured() {
-  return !!(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+  return !!(process.env.RESEND_API_KEY && senderAddress());
 }
 
 class EmailError extends Error {
@@ -39,10 +47,12 @@ function isRetryable(error) {
  * deliver twice.
  */
 async function sendEmail({ to, subject, html, text, headers, idempotencyKey, tags }) {
-  if (!isConfigured()) throw new EmailError('Email is not configured (RESEND_API_KEY / EMAIL_FROM).');
+  await settings.loadAll();
+  if (!isConfigured()) throw new EmailError('Email is not configured (RESEND_API_KEY / sender address).');
 
-  const payload = { from: process.env.EMAIL_FROM, to: [to], subject, html, text, headers, tags };
-  if (process.env.EMAIL_REPLY_TO) payload.replyTo = process.env.EMAIL_REPLY_TO;
+  const payload = { from: senderAddress(), to: [to], subject, html, text, headers, tags };
+  const replyTo = settings.cached().email.reply_to || process.env.EMAIL_REPLY_TO;
+  if (replyTo) payload.replyTo = replyTo;
 
   let lastMessage = 'Unknown email error';
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {

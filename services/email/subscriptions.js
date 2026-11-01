@@ -10,6 +10,8 @@ const { publicProduct } = require('../productView');
 const { sendEmail, isConfigured } = require('./client');
 const { logAttempt } = require('./log');
 const templates = require('./templates');
+const settings = require('../settings');
+const { notifyAdmin } = require('./notifications');
 
 const CONFIRM_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 10 * 60 * 1000;
@@ -79,7 +81,9 @@ async function confirm(token) {
 }
 
 async function sendWelcome(subscriber) {
-  if (!isConfigured()) return;
+  const { email } = await settings.loadAll();
+  notifyAdmin('notify_new_subscriber', `New subscriber: ${subscriber.email}`, `${subscriber.email} confirmed their newsletter subscription.`);
+  if (!isConfigured() || !email.welcome_enabled) return;
   let products = [];
   try {
     const { items } = await Product.list({ featuredOnly: true, perPage: 4 });

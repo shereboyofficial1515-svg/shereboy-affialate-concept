@@ -33,7 +33,7 @@ async function saveCampaign(id, fields) {
 async function campaignProducts(campaign) {
   const ids = Array.isArray(campaign.product_ids) ? campaign.product_ids : [];
   const rows = await Promise.all(ids.map((id) => Product.findById(id).catch(() => null)));
-  return rows.filter(Boolean).map(publicProduct);
+  return rows.filter((p) => p && p.status === 'published').map(publicProduct);
 }
 
 /** Claims this recipient. Returns a log id to send with, or null if already handled. */

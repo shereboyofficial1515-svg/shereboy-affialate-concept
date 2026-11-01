@@ -8,12 +8,14 @@ const { usableImages } = require('./imageStorage');
 
 function publicProduct(product) {
   const images = usableImages(product.images);
-  return { ...product, images, images_missing: images.length === 0 };
+  // Unpublished edits are never sent to visitors
+  const { draft, draft_saved_at: savedAt, ...visible } = product;
+  return { ...visible, images, images_missing: images.length === 0 };
 }
 
 /** Listing cards don't need the long text: keeps the homepage payload small. */
 function cardProduct(product) {
-  const { description, specifications, ...card } = publicProduct(product);
+  const { description, specifications, draft, draft_saved_at: savedAt, ...card } = publicProduct(product);
   return card;
 }
 

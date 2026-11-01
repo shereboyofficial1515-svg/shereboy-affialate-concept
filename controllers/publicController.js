@@ -69,6 +69,7 @@ function plainText(value, max) {
   return text.length > max ? `${text.slice(0, max - 1).replace(/\s+\S*$/, '')}…` : text;
 }
 
+const { toPlainText } = require('../services/richText');
 const money = (n) => Math.round(Number(n) * 100) / 100;
 
 function toPublic(row) {
@@ -82,7 +83,7 @@ function toPublic(row) {
     id: row.id,
     slug: row.slug,
     name: row.name,
-    description: plainText(row.description, 400),
+    description: plainText(toPlainText(row.description), 400),
     image: images[0] ? { url: images[0], alt: row.name } : null,
     images,
     category: row.category ? { name: row.category.name, slug: row.category.slug } : null,
@@ -143,6 +144,7 @@ exports.listProducts = asyncHandler(async (req, res) => {
   let query = supabaseAdmin
     .from('products')
     .select(category ? '*, category:categories!inner(name, slug)' : SELECT, { count: 'exact' })
+    .eq('status', 'published')
     .order('date_added', { ascending: false });
   if (category) query = query.eq('category.slug', category);
   if (q) query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
@@ -171,6 +173,7 @@ exports.featuredProducts = asyncHandler(async (req, res) => {
   const limit = intParam(req.query.limit, { name: 'limit', min: 1, max: 24, fallback: 8 });
   const { data, error } = await supabaseAdmin
     .from('products').select(SELECT)
+    .eq('status', 'published')
     .eq('is_featured', true)
     .order('date_added', { ascending: false })
     .limit(limit);
@@ -183,7 +186,7 @@ exports.featuredProducts = asyncHandler(async (req, res) => {
 exports.getProduct = asyncHandler(async (req, res) => {
   const { slug } = req.params;
   if (!SLUG_RE.test(slug) || slug.length > 200) throw badRequest('Invalid product slug.');
-  const { data, error } = await supabaseAdmin.from('products').select(SELECT).eq('slug', slug).maybeSingle();
+  const { data, error } = await supabaseAdmin.from('products').select(SELECT).eq('status', 'published').eq('slug', slug).maybeSingle();
   if (error) throw unavailable(error);
   if (!data) return res.status(404).json({ success: false, message: 'Product not found.' });
   setPublicCache(res);
@@ -194,7 +197,7 @@ exports.getProduct = asyncHandler(async (req, res) => {
 exports.listCategories = asyncHandler(async (req, res) => {
   const [{ data: cats, error }, { data: rows, error: rowsError }] = await Promise.all([
     supabaseAdmin.from('categories').select('id, name, slug').order('name'),
-    supabaseAdmin.from('products').select('category_id')
+    supabaseAdmin.from('products').select('category_id').eq('status', 'published')
   ]);
   if (error || rowsError) throw unavailable(error || rowsError);
   const counts = {};
@@ -209,7 +212,7 @@ exports.listCategories = asyncHandler(async (req, res) => {
 /** GET /api/public/status — lightweight connection check for partner sites. */
 exports.status = asyncHandler(async (req, res) => {
   const count = async (build) => {
-    const { count: n, error } = await build(supabaseAdmin.from('products').select('id', { count: 'exact', head: true }));
+    const { count: n, error } = await build(supabaseAdmin.from('products').select('id', { count: 'exact', head: true }).eq('status', 'published'));
     if (error) throw unavailable(error);
     return n || 0;
   };

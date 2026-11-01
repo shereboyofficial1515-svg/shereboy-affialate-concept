@@ -2,11 +2,11 @@
 // Everything here requires an administrator session.
 const express = require('express');
 const controller = require('../controllers/emailAdminController');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePermission } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(requireAuth);
+router.use(requireAuth, requirePermission('email.manage'));
 router.param('id', (req, res, next, id) => {
   if (!/^\d{1,12}$/.test(id)) return res.status(404).json({ success: false, message: 'Not found.' });
   next();
