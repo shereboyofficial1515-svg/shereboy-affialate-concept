@@ -5,25 +5,37 @@
 // Storage URLs are permanent, public https links that work on this site and
 // on partner sites (e.g. the SHEREBOY TECH LTD website).
 //
-// Older products may still reference "/uploads/<file>" paths; those keep
-// working while the file exists on disk (see publicController for how
-// missing files are reported).
+// Older products may still reference "/uploads/<file>" paths. Those are only
+// advertised while the file exists on disk (see usableImages).
 
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 const { supabaseAdmin } = require('../config/supabase');
+
+// The host has little memory: decode one image at a time and don't keep a cache
+sharp.concurrency(1);
+sharp.cache(false);
 
 const BUCKET = process.env.SUPABASE_PRODUCT_IMAGES_BUCKET || 'product-images';
 const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
+const MAIN_WIDTH = 1200;
+const THUMB_WIDTH = 480;
 
 // Declared MIME type must match the file's real signature (blocks renamed files)
 const SIGNATURES = {
-  'image/jpeg': { ext: 'jpg', test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
-  'image/png': { ext: 'png', test: (b) => b.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
-  'image/webp': { ext: 'webp', test: (b) => b.slice(0, 4).toString('latin1') === 'RIFF' && b.slice(8, 12).toString('latin1') === 'WEBP' },
-  'image/gif': { ext: 'gif', test: (b) => /^GIF8[79]a$/.test(b.slice(0, 6).toString('latin1')) }
+  'image/jpeg': (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  'image/png': (b) => b.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  'image/webp': (b) => b.slice(0, 4).toString('latin1') === 'RIFF' && b.slice(8, 12).toString('latin1') === 'WEBP',
+  'image/gif': (b) => /^GIF8[79]a$/.test(b.slice(0, 6).toString('latin1'))
 };
+
+function rejected() {
+  const err = new Error('Only JPG, PNG, WEBP, and GIF images are allowed.');
+  err.status = 400;
+  return err;
+}
 
 let bucketReady = false;
 async function ensureBucket() {
@@ -38,29 +50,48 @@ async function ensureBucket() {
   bucketReady = true;
 }
 
+async function uploadObject(objectPath, buffer, contentType) {
+  const { error } = await supabaseAdmin.storage.from(BUCKET).upload(objectPath, buffer, {
+    contentType,
+    cacheControl: '31536000', // names are random, so a file's content never changes
+    upsert: false
+  });
+  if (error) throw new Error(`Image upload failed: ${error.message}`);
+}
+
+/**
+ * Saves one image as WebP at two sizes and returns the main image's public URL.
+ * Copies live next to it: "<name>-w480.webp" for phones (see the srcset in
+ * public/js/render.js) and "<name>-w480.jpg" for email, because classic Outlook
+ * can't display WebP. All three are removed together by deleteImages.
+ */
+async function storeImageBuffer(buffer) {
+  let main, thumb, emailCopy;
+  try {
+    const source = sharp(buffer, { failOn: 'error' }).rotate();
+    main = await source.clone().resize({ width: MAIN_WIDTH, height: MAIN_WIDTH, fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+    thumb = await source.clone().resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: 'inside', withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
+    emailCopy = await source.clone().resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: 'inside', withoutEnlargement: true }).flatten({ background: '#ffffff' }).jpeg({ quality: 80 }).toBuffer();
+  } catch {
+    throw rejected(); // right signature, but not a readable image
+  }
+  await ensureBucket();
+  const name = `products/opt-${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+  await uploadObject(`${name}.webp`, main, 'image/webp');
+  await uploadObject(`${name}-w${THUMB_WIDTH}.webp`, thumb, 'image/webp');
+  await uploadObject(`${name}-w${THUMB_WIDTH}.jpg`, emailCopy, 'image/jpeg');
+  return supabaseAdmin.storage.from(BUCKET).getPublicUrl(`${name}.webp`).data.publicUrl;
+}
+
 /** Uploads multer memory files and returns their permanent public URLs. */
 async function storeImages(files = []) {
   if (!files.length) return [];
   for (const f of files) {
-    const sig = SIGNATURES[f.mimetype];
-    if (!sig || !sig.test(f.buffer)) {
-      const err = new Error('Only JPG, PNG, WEBP, and GIF images are allowed.');
-      err.status = 400;
-      throw err;
-    }
+    const matches = SIGNATURES[f.mimetype];
+    if (!matches || !matches(f.buffer)) throw rejected();
   }
-  await ensureBucket();
   const urls = [];
-  for (const f of files) {
-    const objectPath = `products/${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${SIGNATURES[f.mimetype].ext}`;
-    const { error } = await supabaseAdmin.storage.from(BUCKET).upload(objectPath, f.buffer, {
-      contentType: f.mimetype,
-      cacheControl: '31536000',
-      upsert: false
-    });
-    if (error) throw new Error(`Image upload failed: ${error.message}`);
-    urls.push(supabaseAdmin.storage.from(BUCKET).getPublicUrl(objectPath).data.publicUrl);
-  }
+  for (const f of files) urls.push(await storeImageBuffer(f.buffer));
   return urls;
 }
 
@@ -71,7 +102,11 @@ async function deleteImages(urls = []) {
   for (const url of urls) {
     if (typeof url !== 'string') continue;
     if (url.includes(marker)) {
-      objectPaths.push(decodeURIComponent(url.split(marker)[1].split('?')[0]));
+      const objectPath = decodeURIComponent(url.split(marker)[1].split('?')[0]);
+      objectPaths.push(objectPath);
+      if (/\/opt-[^/]+\.webp$/.test(objectPath)) {
+        objectPaths.push(objectPath.replace(/\.webp$/, `-w${THUMB_WIDTH}.webp`), objectPath.replace(/\.webp$/, `-w${THUMB_WIDTH}.jpg`));
+      }
     } else if (/^\/uploads\/[\w.-]+$/.test(url)) {
       fs.unlink(path.join(UPLOAD_DIR, path.basename(url)), () => {});
     }
@@ -88,4 +123,22 @@ function localUploadExists(url) {
   return fs.existsSync(path.join(UPLOAD_DIR, path.basename(url)));
 }
 
-module.exports = { storeImages, deleteImages, localUploadExists, BUCKET };
+/**
+ * The images a browser can actually load: https URLs, plus legacy uploads whose
+ * file is still on disk. Dead paths and http:// links (blocked as mixed content
+ * on an https page) are dropped here so the site never requests them.
+ */
+function usableImages(images) {
+  return (Array.isArray(images) ? images : []).filter((raw) => {
+    if (typeof raw !== 'string' || !raw.trim()) return false;
+    const value = raw.trim();
+    if (value.startsWith('/uploads/')) return localUploadExists(value);
+    try {
+      return new URL(value).protocol === 'https:';
+    } catch {
+      return false;
+    }
+  });
+}
+
+module.exports = { storeImages, storeImageBuffer, deleteImages, localUploadExists, usableImages, BUCKET };

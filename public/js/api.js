@@ -3,18 +3,26 @@
 // error-handling and JSON parsing logic everywhere.
 
 const NETWORK_ERROR_MESSAGE = "Couldn't reach the server. Please check your connection and try again.";
+const REQUEST_TIMEOUT_MS = 45000;
 
 const API = {
   async request(url, options = {}) {
+    const safeToRepeat = !options.method || options.method === 'GET';
     let res;
-    try {
-      res = await fetch(url, {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-        ...options
-      });
-    } catch (err) {
-      throw new Error(NETWORK_ERROR_MESSAGE);
+    // A sleeping host answers 502/503 for a moment while it wakes up, so a read gets a second try
+    for (let attempt = 1; ; attempt++) {
+      try {
+        res = await fetch(url, {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+          signal: AbortSignal.timeout ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined,
+          ...options
+        });
+        if (!(safeToRepeat && attempt === 1 && (res.status === 502 || res.status === 503))) break;
+      } catch (err) {
+        if (!safeToRepeat || attempt > 1) throw new Error(NETWORK_ERROR_MESSAGE);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2500));
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -43,14 +51,27 @@ const API = {
   }
 };
 
-// A broken product image falls back to the placeholder (image errors don't
-// bubble, so this listens in the capture phase; inline handlers are blocked by the CSP)
+// A product image that fails to load falls back to the neutral placeholder. A
+// resized copy is tried first when there is one. Image errors don't bubble, so
+// this listens in the capture phase; inline handlers are blocked by the CSP.
 document.addEventListener('error', (e) => {
   const img = e.target;
-  if (img && img.tagName === 'IMG' && !img.dataset.fellBack) {
+  if (!img || img.tagName !== 'IMG') return;
+  if (img.hasAttribute('srcset') && !img.dataset.triedFull) {
+    img.dataset.triedFull = '1';
+    img.removeAttribute('srcset');
+    img.src = img.src.replace(/-w480\.webp(\?.*)?$/, '.webp');
+    return;
+  }
+  if (!img.dataset.fellBack) {
     img.dataset.fellBack = '1';
+    img.classList.add('img-missing');
     img.src = '/images/placeholder-product.svg';
   }
+}, true);
+
+document.addEventListener('load', (e) => {
+  if (e.target && e.target.tagName === 'IMG') e.target.classList.add('is-loaded');
 }, true);
 
 function formatNaira(value) {

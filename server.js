@@ -54,6 +54,12 @@ app.use((req, res, next) => {
 });
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// Resend's delivery reports. Needs the untouched body to verify the signature, so
+// it comes before the body parsers below, and before the rate limiter because a
+// busy campaign legitimately produces many of these.
+app.post('/api/email/webhook', express.raw({ type: '*/*', limit: '1mb' }), require('./controllers/emailWebhookController').handle);
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -95,13 +101,32 @@ app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/testimonials', require('./routes/testimonialRoutes'));
 // Read-only public product feed for partner sites (SHEREBOY TECH LTD website)
 app.use('/api/public', require('./routes/publicRoutes'));
+app.get('/api/home', require('./controllers/homeController').home);
+app.use('/api/newsletter', require('./routes/newsletterRoutes'));
+app.use('/api/admin/email', require('./routes/emailAdminRoutes'));
+
+// Pages and files generated on the server: product pages with their SEO data, sitemap
+app.use(require('./routes/seoRoutes'));
 
 // ---------- Protected admin PAGE (checked before static serving) ----------
 app.use('/admin', require('./routes/adminPageRoutes'));
 
 // ---------- Static frontend ----------
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/admin', express.static(path.join(__dirname, 'admin'))); // admin login page + admin-only JS/CSS
+const ONE_WEEK = 7 * 24 * 60 * 60;
+function staticHeaders(res, filePath) {
+  const file = filePath.replace(/\\/g, '/');
+  if (/\/(images|fonts|uploads)\//.test(file) || file.endsWith('favicon.ico')) {
+    res.set('Cache-Control', `public, max-age=${ONE_WEEK}`);
+    // Logos and product photos load in other sites and mail clients
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  } else {
+    // Pages, styles and scripts have no version in their names, so browsers check
+    // each time (a quick "not modified") and a deploy can't mix old and new files
+    res.set('Cache-Control', 'no-cache');
+  }
+}
+app.use(express.static(path.join(__dirname, 'public'), { setHeaders: staticHeaders }));
+app.use('/admin', express.static(path.join(__dirname, 'admin'), { setHeaders: staticHeaders })); // admin login page + admin-only JS/CSS
 
 // Friendly root fallback
 app.get('/', (req, res) => {
@@ -134,10 +159,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\nSHEREBOY AFFILIATE CONCEPT running at http://localhost:${PORT}`);
-  console.log(`   Admin login: http://localhost:${PORT}/admin/login.html\n`);
-});
+// Tests import the app and choose their own port
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`\nSHEREBOY AFFILIATE CONCEPT running at http://localhost:${PORT}`);
+    console.log(`   Admin login: http://localhost:${PORT}/admin/login.html\n`);
+  });
+}
 
 module.exports = app;

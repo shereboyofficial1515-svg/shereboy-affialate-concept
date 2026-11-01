@@ -1,3 +1,8 @@
 User-agent: *
 Disallow: /admin/
+Disallow: /api/
+Disallow: /confirm-subscription.html
+Disallow: /unsubscribe.html
 Allow: /
+
+Sitemap: https://shereboyaffiliateconcept.shop/sitemap.xml

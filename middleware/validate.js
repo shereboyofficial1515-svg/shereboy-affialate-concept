@@ -25,6 +25,13 @@ function validateProduct(req, res, next) {
     errors.push('Availability must be one of: in stock, limited, out of stock.');
   }
 
+  const { rating, rating_count } = req.body;
+  const hasRating = rating !== undefined && rating !== '';
+  const hasCount = rating_count !== undefined && rating_count !== '';
+  if (hasRating !== hasCount) errors.push('Enter both the rating and the number of ratings, or leave both empty.');
+  if (hasRating && (!Number.isFinite(Number(rating)) || Number(rating) < 0 || Number(rating) > 5)) errors.push('Rating must be between 0 and 5.');
+  if (hasCount && (!Number.isInteger(Number(rating_count)) || Number(rating_count) < 0)) errors.push('Number of ratings must be a whole number.');
+
   if (errors.length) return res.status(400).json({ success: false, errors });
   next();
 }

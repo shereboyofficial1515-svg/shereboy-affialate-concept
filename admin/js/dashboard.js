@@ -64,6 +64,9 @@ function bindNav() {
       if (view === 'categories') loadCategories();
       if (view === 'messages') loadMessages();
       if (view === 'subscribers') loadSubscribers();
+      if (view === 'campaigns') loadCampaigns();
+      if (view === 'logs') loadLogs();
+      if (view === 'testimonials') loadTestimonials();
       if (view === 'overview') loadOverview();
     });
   });
@@ -80,6 +83,13 @@ async function loadOverview() {
       <div class="stat-card"><b>${stats.featured}</b><span>Featured</span></div>
       <div class="stat-card"><b>${stats.deals}</b><span>On deal</span></div>
       <div class="stat-card"><b>${stats.outOfStock}</b><span>Out of stock</span></div>`;
+  } catch (err) { /* non-critical */ }
+  try {
+    const { items } = await API.get('/api/products?perPage=100');
+    const missing = items.filter(p => p.images_missing).length;
+    const box = document.getElementById('missingImagesAlert');
+    box.hidden = !missing;
+    box.innerHTML = missing ? `${icon('warning')}<span><b>${missing} product${missing === 1 ? ' has' : 's have'} no working image.</b> Visitors see a placeholder. Open Products, then edit ${missing === 1 ? 'it' : 'each one'} to upload the photo.</span>` : '';
   } catch (err) { /* non-critical */ }
 }
 
@@ -199,14 +209,15 @@ function renderProductsTable(items) {
     <tr>
       <td style="display:flex;align-items:center;gap:10px;">
         <img class="table-thumb" src="${escapeHtml((p.images && p.images[0]) || '/images/placeholder-product.svg')}" alt="" loading="lazy" />
-        <span>${escapeHtml(p.name)}</span>
+        <span>${escapeHtml(p.name)}${p.images_missing ? '<br><span class="pill pill-red">Image missing</span>' : ''}</span>
       </td>
       <td>${escapeHtml(p.category_name || 'Uncategorized')}</td>
       <td class="num">₦${Number(p.final_price).toLocaleString()}</td>
       <td>${availabilityPill(p.availability)}</td>
       <td>
         ${p.is_featured ? '<span class="pill pill-gold">Featured</span> ' : ''}
-        ${p.is_deal ? '<span class="pill pill-blue">Deal</span>' : ''}
+        ${p.is_deal ? '<span class="pill pill-blue">Deal</span> ' : ''}
+        ${p.is_verified ? '<span class="pill pill-green">Verified</span>' : ''}
       </td>
       <td class="row-actions">
         <button class="btn btn-ghost btn-sm" data-action="edit-product" data-id="${Number(p.id)}">Edit</button>
@@ -250,6 +261,9 @@ function bindProductModal() {
     formData.append('affiliate_link', document.getElementById('pLink').value);
     formData.append('is_featured', document.getElementById('pFeatured').checked);
     formData.append('is_deal', document.getElementById('pDeal').checked);
+    formData.append('is_verified', document.getElementById('pVerified').checked);
+    formData.append('rating', document.getElementById('pRating').value);
+    formData.append('rating_count', document.getElementById('pRatingCount').value);
     formData.append('specifications', JSON.stringify(collectSpecs()));
     formData.append('existing_images', JSON.stringify(existingImagesForEdit));
 
@@ -321,6 +335,9 @@ window.editProduct = async function (id) {
     document.getElementById('pLink').value = product.affiliate_link;
     document.getElementById('pFeatured').checked = product.is_featured;
     document.getElementById('pDeal').checked = product.is_deal;
+    document.getElementById('pVerified').checked = !!product.is_verified;
+    document.getElementById('pRating').value = product.rating ?? '';
+    document.getElementById('pRatingCount').value = product.rating_count ?? '';
 
     document.getElementById('specRows').innerHTML = '';
     const specs = product.specifications || {};
@@ -360,7 +377,7 @@ window.deleteProduct = async function (id) {
   } catch (err) { alert(err.message); }
 };
 
-// ---------- Messages / Subscribers ----------
+// ---------- Messages ----------
 async function loadMessages() {
   try {
     const { messages } = await API.get('/api/contact/messages');
@@ -374,18 +391,6 @@ async function loadMessages() {
       </tr>`).join('') : `<tr><td colspan="4">${emptyStateHTML('No messages yet.')}</td></tr>`;
   } catch (err) {
     document.getElementById('messagesTableBody').innerHTML = `<tr><td colspan="4">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
-  }
-}
-
-async function loadSubscribers() {
-  try {
-    const { subscribers } = await API.get('/api/contact/subscribers');
-    const body = document.getElementById('subscribersTableBody');
-    body.innerHTML = subscribers.length ? subscribers.map(s => `
-      <tr><td>${escapeHtml(s.email)}</td><td style="color:var(--gray-500);font-size:0.8rem;">${new Date(s.created_at).toLocaleString()}</td></tr>
-    `).join('') : `<tr><td colspan="2">${emptyStateHTML('No subscribers yet.')}</td></tr>`;
-  } catch (err) {
-    document.getElementById('subscribersTableBody').innerHTML = `<tr><td colspan="2">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
   }
 }
 

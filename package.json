@@ -6,23 +6,31 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "seed": "node database/seed.js"
+    "seed": "node database/seed.js",
+    "test": "node --test test/products.test.js test/newsletter.test.js test/campaigns.test.js test/email-limits.test.js",
+    "preview": "node test/helpers/preview-server.js",
+    "recover-images": "node scripts/recover-product-images.js"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "author": "SHEREBOY TECH LTD",
   "license": "UNLICENSED",
   "dependencies": {
-    "express": "^4.19.2",
     "@supabase/supabase-js": "^2.45.4",
-    "multer": "^2.0.0",
-    "dotenv": "^16.4.5",
-    "helmet": "^7.1.0",
-    "express-rate-limit": "^7.4.0",
-    "cookie-parser": "^1.4.6",
-    "xss-clean": "^0.1.4",
     "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
     "morgan": "^1.10.0",
+    "multer": "^2.0.0",
+    "resend": "^6.37.0",
+    "sharp": "^0.35.5",
     "slugify": "^1.6.6",
-    "validator": "^13.12.0"
+    "validator": "^13.12.0",
+    "xss-clean": "^0.1.4"
   },
   "overrides": {
     "qs": "^6.16.1"

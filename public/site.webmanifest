@@ -1,0 +1,14 @@
+{
+  "name": "SHEREBOY AFFILIATE CONCEPT",
+  "short_name": "SHEREBOY",
+  "description": "Hand-picked affiliate deals, priced in naira.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0B2A2F",
+  "icons": [
+    { "src": "/images/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/images/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/images/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

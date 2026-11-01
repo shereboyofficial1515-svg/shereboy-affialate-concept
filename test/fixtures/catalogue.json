@@ -1,0 +1,230 @@
+{
+ "categories": [
+  {
+   "id": 4,
+   "name": "Beauty & Personal Care",
+   "slug": "beauty-and-personal-care",
+   "icon": "beauty",
+   "description": "Skincare, haircare, and grooming."
+  },
+  {
+   "id": 6,
+   "name": "Browse",
+   "slug": "browse",
+   "icon": "default",
+   "description": "How are you feeling about this it's just for testing "
+  },
+  {
+   "id": 1,
+   "name": "Electronics",
+   "slug": "electronics",
+   "icon": "electronics",
+   "description": "Gadgets, audio, and smart devices."
+  },
+  {
+   "id": 3,
+   "name": "Fashion",
+   "slug": "fashion",
+   "icon": "fashion",
+   "description": "Apparel, shoes, and accessories."
+  },
+  {
+   "id": 2,
+   "name": "Home & Kitchen",
+   "slug": "home-and-kitchen",
+   "icon": "home",
+   "description": "Everyday essentials for the home."
+  },
+  {
+   "id": 5,
+   "name": "Phones & Accessories",
+   "slug": "phones-and-accessories",
+   "icon": "phone",
+   "description": "Phones, cases, chargers, and more."
+  }
+ ],
+ "products": [
+  {
+   "id": 12,
+   "name": "Desktop Humidifier Cooler ",
+   "slug": "desktop-humidifier-cooler-1786415407073",
+   "description": "Meet the 3-in-1 Desktop Humidifier Cooler from ShereboyTech—your perfect cooling companion for home or the office!\r\n\r\n💨 It doesn't just blow air like a regular fan. It cools, humidifies, and refreshes your room with a cool mist for a more comfortable environment.\r\n\r\n✨ Here's why you'll love it:\r\n\r\n❄️ Instant cooling mist for hot days.\r\n🌬️ 3 adjustable fan speeds—Low, Medium, and High.\r\n💡 Beautiful 7-color LED night light for a relaxing atmosphere.\r\n💧 Large 600ml water tank for hours of continuous cooling.\r\n🤫 Ultra-quiet operation, perfect for sleeping or studying.\r\n🔌 USB powered, so you can use it with a laptop, power bank, or USB adapter.\r\n\r\nWhether you're working, relaxing, gaming, or sleeping, this mini air cooler keeps you cool and comfortable wherever you are.",
+   "specifications": {},
+   "price": 65617,
+   "discount_percent": 51,
+   "category_id": 1,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c4tmvlQr",
+   "availability": "in_stock",
+   "is_featured": true,
+   "is_deal": false,
+   "date_added": "2026-08-11T02:30:07.230668+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S148584cb71cc4a7e95917fe3e381d8c51.jpg"
+   ]
+  },
+  {
+   "id": 11,
+   "name": "WiFi Video Intercom Smart Door Lock",
+   "slug": "wifi-video-intercom-smart-door-lock-1786222218818",
+   "description": "Product: WiFi Video Intercom Real-Time Remote Control Facial Recognition Smart Door Lock\r\n\r\nWhat it does:\r\n\r\nSmart door-lock system designed to improve home and property security.\r\nSupports WiFi connectivity for remote access/control features.\r\nIncludes video intercom functionality.\r\nFacial-recognition technology provides an additional access method.\r\nAllows users to interact with visitors through the smart system.\r\nDesigned for modern homes, apartments, offices, and other properties.\r\nCombines smart access control with video/intercom features.",
+   "specifications": {},
+   "price": 915433.29,
+   "discount_percent": 20,
+   "category_id": null,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c3nn5HnH",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-08T20:50:18.862029+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S5342f05192cb43e9bea04bc44b7b784eH.jpg"
+   ]
+  },
+  {
+   "id": 10,
+   "name": "2-Tier Commercial Cake Display Refrigerator",
+   "slug": "2-tier-commercial-cake-display-refrigerator-1786143180538",
+   "description": "Display your cakes beautifully while keeping them perfectly fresh.\r\n\r\nPerfect for bakeries, cafés, restaurants, supermarkets, and pastry shops. This commercial refrigerated display cabinet combines elegant glass shelving, bright LED lighting, and powerful cooling technology to showcase your desserts while maintaining the ideal serving temperature.\r\n\r\n✅ Key Features:\r\nTwo spacious display shelves.\r\nBright LED interior lighting.\r\nFan cooling system for even temperature.\r\nLarge glass viewing panels.\r\nEnergy-efficient R290 refrigerant.\r\nAttractive design for commercial businesses.\r\nIdeal for cakes, pastries, desserts, drinks, and bakery products.",
+   "specifications": {},
+   "price": 5608480,
+   "discount_percent": 0,
+   "category_id": 2,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c3KcElkj",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-07T22:53:01.858873+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/Se76894e3328143ee93f29547c13554d27.jpg"
+   ]
+  },
+  {
+   "id": 9,
+   "name": "RV Toilet Storage Door Compartment Access Hatch for Thetford Cassette Toilets",
+   "slug": "rv-toilet-storage-door-compartment-access-hatch-for-thetford-cassette-toilets-1786143029612",
+   "description": "A must-have replacement part for RV and camper owners.\r\n\r\nKeep your recreational vehicle in excellent condition with this high-quality replacement access hatch. Designed specifically for Thetford Cassette Toilets, it provides easy access to your waste tank while maintaining a neat, secure finish.\r\n\r\n✅ Key Features:\r\nDurable weather-resistant construction.\r\nEasy installation.\r\nSecure locking design.\r\nProvides convenient waste tank access.\r\nIdeal replacement for damaged or worn-out service doors.\r\nSuitable for many RVs, campers, and caravans.",
+   "specifications": {},
+   "price": 75215,
+   "discount_percent": 0,
+   "category_id": 2,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c3NLJ2Zh",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-07T22:50:31.169382+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S7c3a1ccac8f145f59ad8b38871d96456q.jpg"
+   ]
+  },
+  {
+   "id": 8,
+   "name": "Home Electronic WiFi Digital Biometric Fingerprint Smart Door Lock",
+   "slug": "home-electronic-wifi-digital-biometric-fingerprint-smart-door-lock-1785954846606",
+   "description": "🔐 Secure your home with intelligent access control.\r\n\r\nThis smart biometric door lock offers a safer and more convenient way to protect your home or office. Unlock your door within seconds using your fingerprint or connect through WiFi to manage access remotely. Ideal for homeowners, apartments, offices, and rental properties.\r\n\r\n✅ Key Features:\r\nFast Biometric Fingerprint Unlock.\r\nWiFi Remote Control.\r\nDigital Password Access.\r\nMechanical Key Backup.\r\nDurable and reliable security system.\r\nEasy installation on compatible doors.\r\nPerfect for homes, offices, hotels, and apartments.",
+   "specifications": {},
+   "price": 199028,
+   "discount_percent": 0,
+   "category_id": 2,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c3PWO0Kb",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-05T18:34:06.654488+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S3d1456b98c5642d8ba9ed39d373f2c9eC.jpg"
+   ]
+  },
+  {
+   "id": 7,
+   "name": "Tuya Fully Automatic Smart Door Lock with 3D Face & Fingerprint Recognition",
+   "slug": "tuya-fully-automatic-smart-door-lock-with-3d-face-and-fingerprint-recognition-1785953316341",
+   "description": "Upgrade your home security with next-generation smart technology!\r\n\r\nProtect your family and property with this premium Tuya Smart Door Lock. It features advanced 3D facial recognition, fingerprint unlocking, and WiFi connectivity, giving you multiple secure ways to access your home. Whether you're at home or away, you can monitor and control your lock through the Tuya Smart app.\r\n\r\n✅ Key Features:\r\n3D Face Recognition for fast, touch-free unlocking.\r\nHigh-speed Fingerprint Recognition.\r\nWiFi Smart App Control.\r\nMultiple Unlock Methods (Face, Fingerprint, Password, Key & App).\r\nSuitable for both Aluminum and Wooden Doors.\r\nStrong anti-theft security design.\r\nModern and elegant appearance",
+   "specifications": {},
+   "price": 193408,
+   "discount_percent": 0,
+   "category_id": 2,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c2ReIyNt",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-05T18:08:36.316415+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S1fe151c97e9b4a089877c61929d18d5bg.jpg"
+   ]
+  },
+  {
+   "id": 5,
+   "name": "2-in-1 Spray Massage Comb",
+   "slug": "vitamin-c-brightening-serum-1785947815859-319",
+   "description": "Product: 2-in-1 Spray Massage Comb Essential Oil Water Spray Bottle Anti-Static Scalp Massager\r\n\r\nWhat it does:\r\n\r\nCombines a hair-detangling comb with a spray bottle.\r\nHelps distribute water or suitable hair-care liquids while combing.\r\nThe massage design can help stimulate and massage the scalp.\r\nAnti-static design helps reduce hair flyaways during combing.\r\nUseful for daily hair care, detangling, and salon use.\r\nPortable and convenient for home or professional use.",
+   "specifications": {},
+   "price": 30192.17,
+   "discount_percent": 62,
+   "category_id": 2,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c3wIIXpZ",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-05T16:36:55.491222+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S6bc9ba5f7879439cb734f851e8cd2bcfJ.jpg"
+   ]
+  },
+  {
+   "id": 4,
+   "name": "REFOX FM-50 12.9\" LCD Laminator",
+   "slug": "unisex-ankara-print-jacket-1785947815459-581",
+   "description": "Product: REFOX FM-50 12.9-inch LCD Laminator with Bubble Machine\r\n\r\nWhat it does:\r\n\r\nDesigned for phone and tablet screen refurbishment and repair.\r\nSupports curved and flat screens.\r\nFeatures a large 12.9-inch LCD laminating area.\r\nBubble-removal functionality helps during screen refurbishment.\r\nSuitable for technicians and professional phone-repair businesses.\r\nUseful for repairing/refurbishing damaged or replaced screens.",
+   "specifications": {},
+   "price": 2620326.25,
+   "discount_percent": 20,
+   "category_id": 5,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c4PScF7z",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-05T16:36:55.137806+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S158f3e8f97074a049cadd46ef39f544et.jpg"
+   ]
+  },
+  {
+   "id": 3,
+   "name": "Aluminum 20-Port USB Charging Station",
+   "slug": "5-piece-non-stick-cookware-set-1785947815040-56",
+   "description": "Product: Aluminum 20-Port 2.1A USB Charging Station\r\n\r\nWhat it does:\r\n\r\nProvides up to 20 USB charging ports in one station.\r\nDesigned for charging multiple phones, tablets, and other USB devices.\r\nFeatures a built-in 5V 40A power adapter.\r\nSupports 110V/220V input.\r\nAluminum construction gives it a sturdy and professional appearance.\r\nUseful for offices, schools, businesses, repair shops, hotels, and locations with many devices.",
+   "specifications": {},
+   "price": 155639.13,
+   "discount_percent": 8,
+   "category_id": 5,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c2Qof055",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-05T16:36:54.680456+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/Sf69496fa4cfa46a094bfbb7988ff6c909.jpg"
+   ]
+  },
+  {
+   "id": 2,
+   "name": "40-Pack PC & Screen Cleaning Wipes",
+   "slug": "smart-fitness-watch-1785947813401-126",
+   "description": "Product: 40-Pack PC Cleaners Wipes — Dry & Wet Screen Cleaning Cloths\r\n\r\nWhat it does:\r\n\r\nDesigned for cleaning electronic screens and surfaces.\r\nSuitable for phones, tablets, laptops, TVs, monitors, and car surfaces.\r\nIncludes wet and dry cleaning materials.\r\nHelps remove fingerprints, dust, dirt, and smudges.\r\nConvenient for keeping electronic devices looking clean.\r\nA useful everyday accessory for homes, offices, students, and businesses.",
+   "specifications": {},
+   "price": 19014.2,
+   "discount_percent": 62,
+   "category_id": 5,
+   "affiliate_link": "https://s.click.aliexpress.com/e/_c4eoTlL9?utm_source=chatgpt.com",
+   "availability": "in_stock",
+   "is_featured": false,
+   "is_deal": true,
+   "date_added": "2026-08-05T16:36:54.083314+00:00",
+   "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S20f8421b1fee439a8046191cfde55c14z.jpg"
+   ]
+  }
+ ],
+ "testimonials": [],
+ "subscribers": []
+}

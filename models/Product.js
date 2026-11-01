@@ -16,7 +16,7 @@ function throwIfError(error, context) {
 // those characters (search results are unaffected — they're not
 // meaningful search input anyway).
 function sanitizeSearchTerm(term) {
-  return term.replace(/[,()%]/g, ' ').trim();
+  return term.replace(/[,()%*"\\]/g, ' ').trim();
 }
 
 // Flattens the nested `category` join into category_name/category_slug
@@ -32,17 +32,29 @@ function parseRow(row) {
     specifications: rest.specifications || {},
     is_featured: !!rest.is_featured,
     is_deal: !!rest.is_deal,
+    is_verified: !!rest.is_verified,
     category_name: category ? category.name : null,
     category_slug: category ? category.slug : null,
     final_price: +(rest.price * (1 - (rest.discount_percent || 0) / 100)).toFixed(2)
   };
 }
 
+// Added by migration 002. Only written when supplied, so saving keeps working on
+// a database where the migration hasn't run yet.
+function optionalColumns(data) {
+  const columns = {};
+  ['is_verified', 'rating', 'rating_count'].forEach((key) => {
+    if (data[key] !== undefined) columns[key] = data[key];
+  });
+  return columns;
+}
+
 const SORT_MAP = {
   newest: { column: 'date_added', ascending: false },
   price_asc: { column: 'price', ascending: true },
   price_desc: { column: 'price', ascending: false },
-  name_asc: { column: 'name', ascending: true }
+  name_asc: { column: 'name', ascending: true },
+  discount_desc: { column: 'discount_percent', ascending: false }
 };
 
 const Product = {
@@ -148,7 +160,8 @@ const Product = {
         availability: data.availability || 'in_stock',
         is_featured: !!data.is_featured,
         is_deal: !!data.is_deal,
-        images: data.images || []
+        images: data.images || [],
+        ...optionalColumns(data)
       })
       .select('*, category:categories(name, slug)')
       .single();
@@ -168,12 +181,13 @@ const Product = {
         specifications: data.specifications ?? existing.specifications,
         price: data.price ?? existing.price,
         discount_percent: data.discount_percent ?? existing.discount_percent,
-        category_id: data.category_id ?? existing.category_id,
+        category_id: data.category_id !== undefined ? data.category_id : existing.category_id,
         affiliate_link: data.affiliate_link ?? existing.affiliate_link,
         availability: data.availability ?? existing.availability,
         is_featured: data.is_featured !== undefined ? !!data.is_featured : existing.is_featured,
         is_deal: data.is_deal !== undefined ? !!data.is_deal : existing.is_deal,
-        images: data.images ?? existing.images
+        images: data.images ?? existing.images,
+        ...optionalColumns(data)
       })
       .eq('id', id)
       .select('*, category:categories(name, slug)')

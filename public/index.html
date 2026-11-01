@@ -4,146 +4,156 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SHEREBOY AFFILIATE CONCEPT — Honest Deals, Curated Daily</title>
+  <title>SHEREBOY AFFILIATE CONCEPT — Smart finds. Honest prices.</title>
   <meta name="description"
-    content="Curated affiliate deals across electronics, home, fashion, beauty, and phone accessories — with an AI shopping assistant to help you choose." />
+    content="Hand-picked affiliate deals across electronics, home and phone accessories, priced in naira, with an AI shopping assistant to help you choose." />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/images/brand/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#0B2A2F" />
+  <meta property="og:site_name" content="SHEREBOY AFFILIATE CONCEPT" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SHEREBOY AFFILIATE CONCEPT — Smart finds. Honest prices." />
+  <meta property="og:url" content="https://shereboyaffiliateconcept.shop/" />
+  <meta property="og:description" content="Hand-picked affiliate deals across electronics, home and phone accessories, priced in naira, with an AI shopping assistant to help you choose." />
+  <meta property="og:image" content="https://shereboyaffiliateconcept.shop/images/brand/og-default.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://shereboyaffiliateconcept.shop/images/brand/og-default.png" />
+  <link rel="preload" href="/fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/animations.css" />
+  <link rel="canonical" href="https://shereboyaffiliateconcept.shop/" />
 </head>
 
 <body>
-
+  <a class="skip-link" href="#main">Skip to content</a>
   <div id="site-header"></div>
 
-  <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <span class="hero-eyebrow"><span class="icon" style="width:14px;height:14px;"><svg viewBox="0 0 24 24"
-              fill="currentColor">
-              <path d="m12 2 3.1 6.6 7.2.9-5.3 5 1.4 7.2L12 18.3 5.6 21.7 7 14.5l-5.3-5 7.2-.9L12 2Z" />
-            </svg></span> Trusted deal curation since 2026</span>
-        <h1>Smart shopping starts with <span>honest picks.</span></h1>
-        <p class="lead">We compare, verify, and hand-pick the best deals across top categories — then let our AI
-          assistant help you decide, with no pushy sales talk.</p>
-        <div class="hero-actions">
-          <a href="/products.html" class="btn btn-gold">Browse All Deals</a>
-          <a href="/products.html?deal=true" class="btn btn-outline">Today's Top Deals</a>
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <h1>Smart finds.<br /><em>Honest prices.</em></h1>
+          <p class="lead">Hand-picked products from online retailers, priced in naira, with a clear view of what you save before you click through.</p>
+          <form class="hero-search" id="heroSearch" role="search" action="/products.html">
+            <div class="hero-search-field">
+              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></span>
+              <label class="visually-hidden" for="heroQ">Search products</label>
+              <input type="search" id="heroQ" name="q" placeholder="Search products" autocomplete="off" />
+            </div>
+            <button class="btn btn-primary" type="submit">Search</button>
+          </form>
+          <div class="hero-chips" id="heroChips"></div>
+          <div class="hero-stats" id="heroStats" hidden></div>
         </div>
-        <div class="hero-stats">
-          <div class="hero-stat"><b id="statProducts">--</b><span>Products Curated</span></div>
-          <div class="hero-stat"><b id="statCategories">--</b><span>Categories</span></div>
-          <div class="hero-stat"><b>24/7</b><span>AI Assistant</span></div>
-        </div>
+        <div class="spotlight" id="homeHeroVisual" hidden></div>
       </div>
-      <div class="hero-visual">
-        <div class="deal-float d1">
-          <span class="ribbon">Verified Deal</span>
-          <div
-            style="height:110px;border-radius:10px;background:linear-gradient(135deg,#1E4FD9,#0D1E3D);margin-bottom:10px;">
+    </section>
+
+    <section class="trust" aria-label="How this site works">
+      <div class="container trust-grid">
+        <div class="trust-item"><span class="trust-icon" data-icon="check"></span><div><b>Chosen by people</b>Every listing is added by our team, not scraped automatically.</div></div>
+        <div class="trust-item"><span class="trust-icon" data-icon="external-link"></span><div><b>Buy from the retailer</b>Payment, delivery and returns are handled by the store you choose.</div></div>
+        <div class="trust-item"><span class="trust-icon" data-icon="sparkle"></span><div><b>Open about commissions</b>We may earn a commission at no extra cost to you, and we say so.</div></div>
+      </div>
+    </section>
+
+    <div id="homeError" hidden><div class="container"></div></div>
+
+    <section class="section" id="section-empty" hidden>
+      <div class="container"><div class="empty-state"><p>We're adding new products. Please check back soon.</p></div></div>
+    </section>
+
+    <section class="section" id="section-categories" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Categories</span><h2>Shop by what you need</h2></div>
+          <a href="/categories.html" class="section-link">All categories <span data-icon="arrow-right" class="icon"></span></a>
+        </div>
+        <div class="cat-grid" id="homeCategoryGrid"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="section-featured" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Handpicked</span><h2>Featured products</h2></div>
+          <a href="/products.html?featured=true" class="section-link">All featured <span data-icon="arrow-right" class="icon"></span></a>
+        </div>
+        <div class="product-grid" id="grid-featured"></div>
+      </div>
+    </section>
+
+    <section class="section" id="section-deals" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Deals</span><h2>Today's best deals</h2></div>
+          <a href="/products.html?deal=true" class="section-link">All deals <span data-icon="arrow-right" class="icon"></span></a>
+        </div>
+        <div class="product-grid" id="grid-deals"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="section-trending" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Popular</span><h2>Trending products</h2><p class="section-sub">What shoppers have been clicking most this month.</p></div>
+        </div>
+        <div class="product-grid" id="grid-trending"></div>
+      </div>
+    </section>
+
+    <section class="section" id="section-recent" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Just in</span><h2>Recently added</h2></div>
+          <a href="/products.html" class="section-link">All products <span data-icon="arrow-right" class="icon"></span></a>
+        </div>
+        <div class="product-grid" id="grid-recent"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="section-recommended" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Recommended</span><h2>Biggest savings right now</h2></div>
+        </div>
+        <div class="product-grid" id="grid-recommended"></div>
+      </div>
+    </section>
+
+    <section class="section" id="section-testimonials" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Community</span><h2>What shoppers are saying</h2></div>
+        </div>
+        <div class="testi-grid" id="homeTestimonials"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <div><span class="eyebrow">Have a question?</span><h2>Quick answers</h2></div>
+          <a href="/faq.html" class="section-link">Full FAQ <span data-icon="arrow-right" class="icon"></span></a>
+        </div>
+        <div id="homeFaqPreview"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="newsletter">
+          <div>
+            <h2>Never miss a good find</h2>
+            <p>New products, featured picks, special deals, platform updates and a weekly round-up of our recommendations.</p>
           </div>
-          <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Wireless Headphones</div>
-          <div class="price-row"><span class="price-now">₦38,250</span><span class="price-was">₦45,000</span></div>
-        </div>
-        <div class="deal-float d2">
-          <span class="ribbon">Verified Deal</span>
-          <div
-            style="height:110px;border-radius:10px;background:linear-gradient(135deg,#D4A954,#E4C27C);margin-bottom:10px;">
-          </div>
-          <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Smart Fitness Watch</div>
-          <div class="price-row"><span class="price-now">₦28,800</span><span class="price-was">₦32,000</span></div>
+          <div data-newsletter="homepage"></div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Categories</span>
-          <h2>Shop by what you need</h2>
-        </div>
-        <a href="/categories.html" class="btn btn-ghost btn-sm">View all <span class="icon" style="width:14px;height:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
-      </div>
-      <div class="cat-grid" id="homeCategoryGrid">
-        <div class="empty-state">Loading categories…</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" style="background:var(--gray-50);">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Handpicked</span>
-          <h2>Featured products</h2>
-          <p class="section-sub">The pieces our team keeps coming back to — verified quality, fair pricing.</p>
-        </div>
-        <a href="/products.html?featured=true" class="btn btn-ghost btn-sm">See all featured <span class="icon" style="width:14px;height:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
-      </div>
-      <div class="product-grid" id="homeFeaturedGrid">
-        <div class="empty-state">Loading products…</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section deals-strip">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Limited time</span>
-          <h2>Today's deals</h2>
-        </div>
-        <a href="/products.html?deal=true" class="btn btn-gold btn-sm">Shop all deals <span class="icon" style="width:14px;height:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
-      </div>
-      <div class="product-grid" id="homeDealsGrid">
-        <div class="empty-state">Loading deals…</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Community</span>
-          <h2>What shoppers are saying</h2>
-        </div>
-      </div>
-      <div class="testi-grid" id="homeTestimonials">
-        <div class="empty-state">Loading testimonials…</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" style="background:var(--gray-50);">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <span class="eyebrow">Have a question?</span>
-          <h2>Quick answers</h2>
-        </div>
-        <a href="/faq.html" class="btn btn-ghost btn-sm">View full FAQ <span class="icon" style="width:14px;height:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
-      </div>
-      <div id="homeFaqPreview"></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="newsletter">
-        <div>
-          <h2 style="color:#fff;">Never miss a deal</h2>
-          <p style="color:#DDE3F2;margin-top:6px;">Get the best verified deals sent straight to your inbox, weekly.</p>
-        </div>
-        <form class="newsletter-form">
-          <input type="email" placeholder="you@email.com" required />
-          <button class="btn btn-gold" type="submit">Subscribe</button>
-        </form>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <div id="site-footer"></div>
   <div id="ai-widget"></div>
@@ -155,7 +165,6 @@
   <script src="/js/main.js"></script>
   <script src="/js/ai-widget.js"></script>
   <script src="/js/home.js"></script>
-  <script src="/js/animate-on-scroll.js"></script>
 </body>
 
 </html>

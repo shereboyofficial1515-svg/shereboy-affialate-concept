@@ -4,8 +4,18 @@
     {
       "name": "shereboy-affiliate",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["server.js"],
+      "runtimeArgs": [
+        "server.js"
+      ],
       "port": 3000
+    },
+    {
+      "name": "shereboy-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "test/helpers/preview-server.js"
+      ],
+      "port": 3100
     }
   ]
 }

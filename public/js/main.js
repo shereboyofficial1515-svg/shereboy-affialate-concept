@@ -18,28 +18,46 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Highlight current page in nav
-  const path = window.location.pathname.split('/').pop() || 'index.html';
+  const path = window.location.pathname === '/index.html' ? '/' : window.location.pathname;
   document.querySelectorAll('.nav-links a').forEach(a => {
-    if (a.getAttribute('href') === path) a.classList.add('active');
+    if (a.getAttribute('href') === path) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    }
   });
+
+  // Keep what was searched for visible in the header box
+  const navSearch = document.getElementById('navSearchInput');
+  if (navSearch) navSearch.value = new URLSearchParams(window.location.search).get('q') || '';
 
   // Footer year
   document.querySelectorAll('.footer-year').forEach(el => { el.textContent = new Date().getFullYear(); });
 
-  // Newsletter subscribe form (appears on multiple pages)
+  // Newsletter subscribe form
   document.querySelectorAll('.newsletter-form').forEach(form => {
     const submitBtn = form.querySelector('button[type="submit"]');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (submitBtn.disabled) return;
 
-      const email = form.querySelector('input[type="email"]').value;
-      const msgBox = form.parentElement.querySelector('.form-msg') || createMsgBox(form);
+      const emailInput = form.querySelector('input[type="email"]');
+      const msgBox = form.querySelector('.form-msg') || createMsgBox(form);
+      const email = emailInput.value.trim();
+      if (!emailInput.checkValidity() || !email) {
+        setFormMessage(msgBox, 'Please enter a valid email address.', 'error');
+        emailInput.focus();
+        return;
+      }
+
       const submitLabel = submitBtn.textContent;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Subscribing…';
       try {
-        const data = await API.post('/api/contact/subscribe', { email });
+        const data = await API.post('/api/newsletter/subscribe', {
+          email,
+          website: form.querySelector('input[name="website"]').value,
+          source: form.dataset.source
+        });
         setFormMessage(msgBox, data.message, 'success');
         form.reset();
       } catch (err) {
@@ -54,8 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function createMsgBox(form) {
     const box = document.createElement('div');
     box.className = 'form-msg';
+    box.setAttribute('role', 'status');
     box.style.display = 'none';
-    form.after(box);
+    form.append(box);
     return box;
   }
 });
