@@ -4,11 +4,21 @@
 // files by hand. Pages just need <div id="site-header"></div> and
 // <div id="site-footer"></div> plus an AI widget mount point.
 
+const SITE_CONFIG = window.SITE || { name: 'SHEREBOY AFFILIATE CONCEPT', description: 'Hand-picked products from online retailers, with honest prices and clear disclosure. A SHEREBOY TECH LTD project.', social: { tiktok: 'https://tiktok.com/@shereboy', youtube: 'https://youtube.com/@shereboy1379', whatsapp: 'https://wa.me/2347055426419' }, legalLinks: [{ href: '/privacy.html', title: 'Privacy Policy' }, { href: '/terms.html', title: 'Terms & Conditions' }], theme: {}, newsletterEnabled: true };
+const SITE_NAME = escapeHtml(SITE_CONFIG.name);
+const SOCIAL_LABELS = { tiktok: 'TikTok', youtube: 'YouTube', whatsapp: 'WhatsApp', facebook: 'Facebook', instagram: 'Instagram', x: 'X' };
+
+// The built-in logo has a version for each background; a custom logo is used as it is
+function headerLogoSrc() {
+  if (SITE_CONFIG.logo) return SITE_CONFIG.logo;
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? '/images/brand/logo-horizontal-dark-bg.svg' : '/images/brand/logo-horizontal-light-bg.svg';
+}
+
 const NAVBAR_HTML = `
 <nav class="navbar" aria-label="Main">
   <div class="nav-inner">
-    <a href="/" class="brand" aria-label="SHEREBOY AFFILIATE CONCEPT home">
-      <img src="/images/brand/logo-horizontal-light-bg.svg" alt="SHEREBOY AFFILIATE CONCEPT" width="214" height="42" />
+    <a href="/" class="brand" aria-label="${SITE_NAME} home">
+      <img id="headerLogo" src="${escapeHtml(headerLogoSrc())}" alt="${SITE_NAME}" />
     </a>
     <ul class="nav-links" id="navLinks">
       <li><a href="/">Home</a></li>
@@ -23,6 +33,7 @@ const NAVBAR_HTML = `
       <label class="visually-hidden" for="navSearchInput">Search products</label>
       <input type="search" id="navSearchInput" name="q" placeholder="Search products" autocomplete="off" />
     </form>
+    ${SITE_CONFIG.theme.allowToggle ? `<button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark">${icon('sparkle')}</button>` : ''}
     <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">${icon('menu')}</button>
   </div>
 </nav>`;
@@ -32,14 +43,12 @@ const FOOTER_HTML = `
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a href="/" aria-label="SHEREBOY AFFILIATE CONCEPT home">
-          <img src="/images/brand/logo-horizontal-dark-bg.svg" alt="SHEREBOY AFFILIATE CONCEPT" width="225" height="44" loading="lazy" />
+        <a href="/" aria-label="${SITE_NAME} home">
+          <img src="${escapeHtml(SITE_CONFIG.logoAlt || '/images/brand/logo-horizontal-dark-bg.svg')}" alt="${SITE_NAME}" loading="lazy" />
         </a>
-        <p class="footer-about">Hand-picked products from online retailers, with honest prices and clear disclosure. A SHEREBOY TECH LTD project.</p>
+        <p class="footer-about">${escapeHtml(SITE_CONFIG.description)}</p>
         <div class="footer-social">
-          <a href="https://tiktok.com/@shereboy" target="_blank" rel="noopener" aria-label="TikTok">${icon('tiktok')}</a>
-          <a href="https://youtube.com/@shereboy1379" target="_blank" rel="noopener" aria-label="YouTube">${icon('youtube')}</a>
-          <a href="https://wa.me/2347055426419" target="_blank" rel="noopener" aria-label="WhatsApp">${icon('whatsapp')}</a>
+          ${Object.entries(SITE_CONFIG.social).filter(([, url]) => url).map(([name, url]) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" aria-label="${SOCIAL_LABELS[name]}">${icon(ICONS[name] ? name : 'external-link')}</a>`).join('')}
         </div>
       </div>
       <div>
@@ -57,12 +66,11 @@ const FOOTER_HTML = `
       </div>
       <div>
         <h4>Legal</h4>
-        <a class="footer-link" href="/privacy.html">Privacy Policy</a>
-        <a class="footer-link" href="/terms.html">Terms &amp; Conditions</a>
+        ${SITE_CONFIG.legalLinks.map((l) => `<a class="footer-link" href="${escapeHtml(l.href)}">${escapeHtml(l.title)}</a>`).join('')}
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <span class="footer-year"></span> SHEREBOY AFFILIATE CONCEPT. All rights reserved.</span>
+      <span>© <span class="footer-year"></span> ${SITE_NAME}. All rights reserved.</span>
       <span>As an affiliate, we may earn a commission from qualifying purchases.</span>
     </div>
   </div>
@@ -104,7 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const header = document.getElementById('site-header');
   const footer = document.getElementById('site-footer');
   const aiMount = document.getElementById('ai-widget');
-  if (header) header.innerHTML = NAVBAR_HTML;
+  const promo = SITE_CONFIG.promo;
+  const promoHtml = promo ? (promo.link
+    ? `<a class="promo-bar" href="${escapeHtml(promo.link)}">${escapeHtml(promo.message)}</a>`
+    : `<div class="promo-bar">${escapeHtml(promo.message)}</div>`) : '';
+  if (header) header.innerHTML = promoHtml + NAVBAR_HTML;
+  if (!SITE_CONFIG.newsletterEnabled) document.querySelectorAll('[data-newsletter]').forEach((el) => { (el.closest('section') || el).hidden = true; });
+  document.querySelectorAll('[data-site-phone]').forEach((el) => {
+    if (!SITE_CONFIG.phone) { el.closest('[data-site-phone-row]')?.remove(); return; }
+    el.textContent = SITE_CONFIG.phone;
+  });
   if (footer) footer.innerHTML = FOOTER_HTML;
   if (aiMount) aiMount.innerHTML = AI_WIDGET_HTML;
 
@@ -115,6 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el.classList.contains('icon')) el.innerHTML = ICONS[el.dataset.icon] || '';
     else el.innerHTML = icon(el.dataset.icon);
   });
+
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) { /* the choice just isn't remembered */ }
+      document.getElementById('headerLogo').src = headerLogoSrc();
+    });
+  }
 
   // Re-run nav behaviors now that the navbar exists in the DOM.
   document.dispatchEvent(new Event('layout:ready'));

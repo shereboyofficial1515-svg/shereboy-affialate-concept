@@ -10,8 +10,17 @@ const LINE = '#E4E9EA';
 const BG = '#F3F5F6';
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
-const site = () => (process.env.PUBLIC_SITE_URL || 'https://shereboyaffiliateconcept.shop').replace(/\/+$/, '');
-const postalAddress = () => process.env.EMAIL_POSTAL_ADDRESS || 'SHEREBOY TECH LTD, Warri/Sapele, Delta State, Nigeria';
+const settings = require('../settings');
+
+const site = () => settings.siteUrl();
+const brand = () => settings.cached().identity.site_name;
+// A logo chosen in settings gets a white header, since its JPEG copy has a white background
+function headerLogo() {
+  const custom = settings.cached().identity.email_logo;
+  if (!custom) return { src: `${site()}/images/brand/email-logo.png`, background: INK };
+  return { src: /\/opt-[^/]+\.webp$/.test(custom) ? custom.replace(/\.webp$/, '-w480.jpg') : custom, background: '#ffffff' };
+}
+const postalAddress = () => process.env.EMAIL_POSTAL_ADDRESS || `SHEREBOY TECH LTD, ${settings.cached().identity.address}`;
 
 function esc(value) {
   return String(value ?? '')
@@ -38,14 +47,14 @@ function layout({ title, preheader, content, footerNote, unsubscribe }) {
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader || '')}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BG};"><tr><td class="outer" align="center" style="padding:28px 12px;">
   <table role="presentation" class="card" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;">
-    <tr><td style="background:${INK};padding:22px 32px;">
-      <a href="${site()}"><img src="${site()}/images/brand/email-logo.png" height="44" alt="SHEREBOY AFFILIATE CONCEPT" style="display:block;height:44px;width:auto;border:0;color:#ffffff;font:700 16px ${FONT};"></a>
+    <tr><td style="background:${headerLogo().background};padding:22px 32px;">
+      <a href="${site()}"><img src="${esc(headerLogo().src)}" height="44" alt="${esc(brand())}" style="display:block;height:44px;width:auto;border:0;color:#ffffff;font:700 16px ${FONT};"></a>
     </td></tr>
     <tr><td class="pad" style="padding:32px;font:400 15px/1.6 ${FONT};color:${INK};">${content}</td></tr>
     <tr><td class="pad" style="padding:22px 32px;border-top:1px solid ${LINE};font:400 12px/1.6 ${FONT};color:${MUTED};">
       ${footerNote ? `<p style="margin:0 0 8px;">${footerNote}</p>` : ''}
       <p style="margin:0 0 8px;">We may earn a commission when you buy through our links, at no extra cost to you. Prices can change; the retailer's page is the final word.</p>
-      <p style="margin:0;"><a href="${site()}" style="color:${TEAL};">shereboyaffiliateconcept.shop</a> · ${esc(postalAddress())}${unsubscribe ? ` · <a href="${esc(unsubscribe)}" style="color:${MUTED};text-decoration:underline;">Unsubscribe</a>` : ''}</p>
+      <p style="margin:0;"><a href="${site()}" style="color:${TEAL};">${esc(site().replace(/^https?:\/\//, ''))}</a> · ${esc(postalAddress())}${unsubscribe ? ` · <a href="${esc(unsubscribe)}" style="color:${MUTED};text-decoration:underline;">Unsubscribe</a>` : ''}</p>
     </td></tr>
   </table>
 </td></tr></table></body></html>`;
@@ -99,16 +108,16 @@ function confirmationEmail({ confirmUrl }) {
       title: subject,
       preheader: 'One click and you are in. If this was not you, ignore this email.',
       content: `<h1 style="margin:0 0 12px;font:700 24px/1.25 ${FONT};color:${INK};">Confirm your subscription</h1>
-        <p style="margin:0 0 20px;">Tap below to start receiving new product announcements, featured products, special deals, platform updates and weekly recommendations from SHEREBOY AFFILIATE CONCEPT.</p>
+        <p style="margin:0 0 20px;">Tap below to start receiving new product announcements, featured products, special deals, platform updates and weekly recommendations from ${esc(brand())}.</p>
         ${button(confirmUrl, 'Yes, subscribe me')}
         <p style="margin:20px 0 0;font-size:13px;color:${MUTED};">The link works for 7 days. If you didn't ask for this, ignore this email and you won't hear from us again.</p>`
     }),
-    text: `Confirm your subscription to SHEREBOY AFFILIATE CONCEPT:\n${confirmUrl}\n\nThe link works for 7 days. If you didn't ask for this, ignore this email and you won't hear from us again.\n\n${postalAddress()}`
+    text: `Confirm your subscription to ${brand()}:\n${confirmUrl}\n\nThe link works for 7 days. If you didn't ask for this, ignore this email and you won't hear from us again.\n\n${postalAddress()}`
   };
 }
 
 function welcomeEmail({ unsubscribeToken, products }) {
-  const subject = "You're subscribed to SHEREBOY AFFILIATE CONCEPT";
+  const subject = `You're subscribed to ${brand()}`;
   const unsubscribe = unsubscribeUrl(unsubscribeToken);
   return {
     subject,

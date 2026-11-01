@@ -33,8 +33,34 @@ function startMockResend() {
   }));
 }
 
+// Speaks enough of the Gemini API to record exactly what the app sends
+function startMockAi() {
+  const state = { requests: [], reply: () => '<p>Improved text.</p>', fail: null };
+  const server = http.createServer((req, res) => {
+    let body = '';
+    req.on('data', (c) => { body += c; });
+    req.on('end', () => {
+      state.requests.push({ url: req.url, headers: req.headers, body: body ? JSON.parse(body) : null });
+      res.setHeader('content-type', 'application/json');
+      if (state.fail) {
+        res.statusCode = state.fail.status;
+        return res.end(JSON.stringify({ error: { message: state.fail.message } }));
+      }
+      if (req.method === 'GET') return res.end(JSON.stringify({ models: [{ name: 'models/gemini-test-model', supportedGenerationMethods: ['generateContent'] }, { name: 'models/embedding-only', supportedGenerationMethods: ['embedContent'] }] }));
+      res.end(JSON.stringify({
+        candidates: [{ finishReason: 'STOP', content: { parts: [{ text: state.reply(JSON.parse(body)) }] } }],
+        usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 20 }
+      }));
+    });
+  });
+  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => {
+    resolve({ state, server, url: `http://127.0.0.1:${server.address().port}` });
+  }));
+}
+
 async function startApp({ seed = {}, env = {}, email = true } = {}) {
   const resend = await startMockResend();
+  const mockAi = await startMockAi();
 
   Object.assign(process.env, {
     NODE_ENV: 'test',
@@ -46,6 +72,9 @@ async function startApp({ seed = {}, env = {}, email = true } = {}) {
     PUBLIC_SITE_URL: 'https://site.test',
     RESEND_BASE_URL: resend.url,
     RESEND_WEBHOOK_SECRET: SIGNING_SECRET,
+    GEMINI_BASE_URL: mockAi.url,
+    ANTHROPIC_API_KEY: '',
+    OPENAI_API_KEY: '',
     GEMINI_API_KEY: '', // dotenv won't replace these, so the developer's .env can't
     COMPANY_SITE_WEBHOOK_URL: '', // make tests or the preview call real services
     COMPANY_SITE_WEBHOOK_SECRET: '',
@@ -101,6 +130,8 @@ async function startApp({ seed = {}, env = {}, email = true } = {}) {
     db,
     base,
     resend: resend.state,
+    ai: mockAi.state,
+    req: call,
     get: (url, opts) => call('GET', url, opts),
     post: (url, body, opts) => call('POST', url, { body, ...opts }),
     put: (url, body, opts) => call('PUT', url, { body, ...opts }),
@@ -110,6 +141,8 @@ async function startApp({ seed = {}, env = {}, email = true } = {}) {
       await new Promise((resolve) => server.close(resolve));
       if (resend.server.closeAllConnections) resend.server.closeAllConnections();
       await new Promise((resolve) => resend.server.close(resolve));
+      if (mockAi.server.closeAllConnections) mockAi.server.closeAllConnections();
+      await new Promise((resolve) => mockAi.server.close(resolve));
     }
   };
 }

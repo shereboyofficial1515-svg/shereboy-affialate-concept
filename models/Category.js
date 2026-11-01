@@ -21,7 +21,8 @@ const Category = {
     // we count products per category in JS from a single lightweight query.
     const { data: products, error: prodErr } = await supabaseAdmin
       .from('products')
-      .select('category_id');
+      .select('category_id')
+      .eq('status', 'published');
     throwIfError(prodErr, 'Failed to count products per category');
 
     const counts = {};
@@ -52,22 +53,22 @@ const Category = {
     return data;
   },
 
-  async create({ name, icon, description }) {
+  async create({ name, icon, description, image_url }) {
     const slug = slugify(name, { lower: true, strict: true });
     const { data, error } = await supabaseAdmin
       .from('categories')
-      .insert({ name, slug, icon: icon || 'default', description: description || '' })
+      .insert({ name, slug, icon: icon || 'default', description: description || '', ...(image_url !== undefined ? { image_url } : {}) })
       .select()
       .single();
     throwIfError(error, 'Failed to create category');
     return data;
   },
 
-  async update(id, { name, icon, description }) {
+  async update(id, { name, icon, description, image_url }) {
     const slug = slugify(name, { lower: true, strict: true });
     const { data, error } = await supabaseAdmin
       .from('categories')
-      .update({ name, slug, icon: icon || 'default', description: description || '' })
+      .update({ name, slug, icon: icon || 'default', description: description || '', ...(image_url !== undefined ? { image_url } : {}) })
       .eq('id', id)
       .select()
       .single();

@@ -59,6 +59,28 @@ async function uploadObject(objectPath, buffer, contentType) {
   if (error) throw new Error(`Image upload failed: ${error.message}`);
 }
 
+/** Stores all three copies of an image and describes what was saved. */
+async function optimizeImage(buffer) {
+  let main, thumb, emailCopy, meta;
+  try {
+    const source = sharp(buffer, { failOn: 'error' }).rotate();
+    main = await source.clone().resize({ width: MAIN_WIDTH, height: MAIN_WIDTH, fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+    thumb = await source.clone().resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: 'inside', withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
+    emailCopy = await source.clone().resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: 'inside', withoutEnlargement: true }).flatten({ background: '#ffffff' }).jpeg({ quality: 80 }).toBuffer();
+    meta = await sharp(main).metadata();
+  } catch {
+    throw rejected(); // right signature, but not a readable image
+  }
+  await ensureBucket();
+  const name = `products/opt-${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+  const paths = [`${name}.webp`, `${name}-w${THUMB_WIDTH}.webp`, `${name}-w${THUMB_WIDTH}.jpg`];
+  await uploadObject(paths[0], main, 'image/webp');
+  await uploadObject(paths[1], thumb, 'image/webp');
+  await uploadObject(paths[2], emailCopy, 'image/jpeg');
+  const urlOf = (p) => supabaseAdmin.storage.from(BUCKET).getPublicUrl(p).data.publicUrl;
+  return { url: urlOf(paths[0]), thumbUrl: urlOf(paths[1]), paths, size: main.length, width: meta.width, height: meta.height };
+}
+
 /**
  * Saves one image as WebP at two sizes and returns the main image's public URL.
  * Copies live next to it: "<name>-w480.webp" for phones (see the srcset in
@@ -66,21 +88,7 @@ async function uploadObject(objectPath, buffer, contentType) {
  * can't display WebP. All three are removed together by deleteImages.
  */
 async function storeImageBuffer(buffer) {
-  let main, thumb, emailCopy;
-  try {
-    const source = sharp(buffer, { failOn: 'error' }).rotate();
-    main = await source.clone().resize({ width: MAIN_WIDTH, height: MAIN_WIDTH, fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
-    thumb = await source.clone().resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: 'inside', withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
-    emailCopy = await source.clone().resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: 'inside', withoutEnlargement: true }).flatten({ background: '#ffffff' }).jpeg({ quality: 80 }).toBuffer();
-  } catch {
-    throw rejected(); // right signature, but not a readable image
-  }
-  await ensureBucket();
-  const name = `products/opt-${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
-  await uploadObject(`${name}.webp`, main, 'image/webp');
-  await uploadObject(`${name}-w${THUMB_WIDTH}.webp`, thumb, 'image/webp');
-  await uploadObject(`${name}-w${THUMB_WIDTH}.jpg`, emailCopy, 'image/jpeg');
-  return supabaseAdmin.storage.from(BUCKET).getPublicUrl(`${name}.webp`).data.publicUrl;
+  return (await optimizeImage(buffer)).url;
 }
 
 /** Uploads multer memory files and returns their permanent public URLs. */
@@ -97,6 +105,17 @@ async function storeImages(files = []) {
 
 /** Deletes images that belong to this site (storage objects or legacy local files). Best-effort. */
 async function deleteImages(urls = []) {
+  // Files in the media library can be shared, so only the library may remove them
+  const candidates = urls.filter((u) => typeof u === 'string');
+  if (candidates.length) {
+    const { data, error } = await supabaseAdmin.from('media').select('url').in('url', candidates);
+    if (error) {
+      console.warn('[imageStorage] kept images, could not check the media library:', error.message);
+      return;
+    }
+    const shared = new Set((data || []).map((m) => m.url));
+    urls = candidates.filter((u) => !shared.has(u));
+  }
   const marker = `/storage/v1/object/public/${BUCKET}/`;
   const objectPaths = [];
   for (const url of urls) {
@@ -133,6 +152,7 @@ function usableImages(images) {
     if (typeof raw !== 'string' || !raw.trim()) return false;
     const value = raw.trim();
     if (value.startsWith('/uploads/')) return localUploadExists(value);
+    if (process.env.PREVIEW_IMAGE_BASE && value.startsWith(process.env.PREVIEW_IMAGE_BASE)) return true; // local preview only
     try {
       return new URL(value).protocol === 'https:';
     } catch {
@@ -141,4 +161,4 @@ function usableImages(images) {
   });
 }
 
-module.exports = { storeImages, storeImageBuffer, deleteImages, localUploadExists, usableImages, BUCKET };
+module.exports = { storeImages, storeImageBuffer, optimizeImage, ensureBucket, deleteImages, localUploadExists, usableImages, BUCKET, THUMB_WIDTH };

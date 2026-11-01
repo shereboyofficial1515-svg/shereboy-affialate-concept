@@ -6,7 +6,7 @@
 
 const { supabase, supabaseAdmin } = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
-const { isAdmin } = require('../middleware/auth');
+const { roleFor, ROLE_PERMISSIONS } = require('../middleware/auth');
 
 const isProd = () => process.env.NODE_ENV === 'production';
 
@@ -15,7 +15,6 @@ function shapeUser(user) {
     id: user.id,
     name: user.user_metadata?.name || user.email,
     email: user.email,
-    role: 'admin', // every account able to sign in here is an admin by design
     created_at: user.created_at
   };
 }
@@ -25,7 +24,7 @@ exports.login = asyncHandler(async (req, res) => {
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   // Same reply for non-administrators, so this can't be used to probe accounts
-  if (error || !data?.session || !isAdmin(data.user)) {
+  if (error || !data?.session || !(await roleFor(data.user))) {
     return res.status(401).json({ success: false, message: 'Invalid email or password.' });
   }
 
@@ -59,5 +58,5 @@ exports.logout = asyncHandler(async (req, res) => {
 exports.me = asyncHandler(async (req, res) => {
   // req.user is already populated by the requireAuth middleware, which
   // verified the token against Supabase — no extra lookup needed here.
-  res.json({ success: true, user: shapeUser(req.user) });
+  res.json({ success: true, user: { ...shapeUser(req.user), role: req.role, permissions: ROLE_PERMISSIONS[req.role] } });
 });

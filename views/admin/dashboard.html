@@ -14,25 +14,50 @@
 <body>
 
   <div class="dash">
-    <aside class="sidebar">
+    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" data-icon="menu"><span class="icon"></span></button>
+    <aside class="sidebar" id="sidebar">
       <a class="brand" href="/" title="View the live site"><img src="/images/brand/logo-horizontal-dark-bg.svg" alt="SHEREBOY AFFILIATE CONCEPT" /></a>
-      <nav class="side-nav">
-        <button data-view="overview" data-label="Overview" data-icon="overview" class="active"><span
-            class="icon"></span> Overview</button>
-        <button data-view="products" data-label="Products" data-icon="products"><span class="icon"></span>
-          Products</button>
-        <button data-view="categories" data-label="Categories" data-icon="categories"><span class="icon"></span>
-          Categories</button>
-        <button data-view="messages" data-label="Messages" data-icon="messages"><span class="icon"></span>
-          Messages</button>
-        <button data-view="subscribers" data-label="Subscribers" data-icon="subscribers"><span class="icon"></span>
-          Subscribers</button>
-        <button data-view="campaigns" data-label="Email campaigns" data-icon="campaigns"><span class="icon"></span>
-          Campaigns</button>
-        <button data-view="logs" data-label="Email send log" data-icon="inbox"><span class="icon"></span>
-          Send log</button>
-        <button data-view="testimonials" data-label="Testimonials" data-icon="testimonials"><span class="icon"></span>
-          Testimonials</button>
+      <nav class="side-nav" aria-label="Dashboard">
+        <div class="nav-group"><h4>Dashboard</h4>
+          <button data-view="overview" data-label="Overview" data-icon="overview"><span class="icon"></span> Overview</button>
+          <button data-view="analytics" data-label="Analytics" data-icon="overview" data-perm="audit.view"><span class="icon"></span> Analytics</button>
+        </div>
+        <div class="nav-group"><h4>Product Management</h4>
+          <button data-view="products" data-label="All products" data-icon="products" data-perm="products.edit"><span class="icon"></span> All Products</button>
+          <button data-view="new-product" data-label="Add product" data-icon="plus" data-perm="products.edit"><span class="icon"></span> Add Product</button>
+          <button data-view="categories" data-label="Categories" data-icon="categories" data-perm="products.publish"><span class="icon"></span> Categories</button>
+        </div>
+        <div class="nav-group"><h4>Content Management</h4>
+          <button data-view="media" data-label="Media Library" data-icon="inbox" data-perm="media.manage"><span class="icon"></span> Media Library</button>
+          <button data-view="homepage" data-label="Homepage Editor" data-icon="home" data-perm="content.publish"><span class="icon"></span> Homepage Editor</button>
+          <button data-view="banners" data-label="Banners" data-icon="campaigns" data-perm="content.publish"><span class="icon"></span> Banners</button>
+          <button data-view="testimonials" data-label="Testimonials" data-icon="testimonials" data-perm="content.publish"><span class="icon"></span> Testimonials</button>
+        </div>
+        <div class="nav-group"><h4>AI Management</h4>
+          <button data-view="ai" data-label="AI Control Centre" data-icon="sparkle" data-perm="ai.manage"><span class="icon"></span> AI Control Centre</button>
+          <button data-view="teach" data-label="Teach Your AI" data-icon="chat" data-perm="ai.manage"><span class="icon"></span> Teach Your AI</button>
+          <button data-view="knowledge" data-label="Knowledge Base" data-icon="messages" data-perm="ai.manage"><span class="icon"></span> Knowledge Base</button>
+          <button data-view="ai-activity" data-label="AI Activity" data-icon="overview" data-perm="ai.manage"><span class="icon"></span> AI Activity</button>
+        </div>
+        <div class="nav-group"><h4>Communication</h4>
+          <button data-view="subscribers" data-label="Subscribers" data-icon="subscribers" data-perm="email.manage"><span class="icon"></span> Subscribers</button>
+          <button data-view="campaigns" data-label="Email Campaigns" data-icon="campaigns" data-perm="email.manage"><span class="icon"></span> Email Campaigns</button>
+          <button data-view="logs" data-label="Email Send Log" data-icon="inbox" data-perm="email.manage"><span class="icon"></span> Email Send Log</button>
+          <button data-view="messages" data-label="Messages" data-icon="messages" data-perm="email.manage"><span class="icon"></span> Messages</button>
+        </div>
+        <div class="nav-group"><h4>Website Configuration</h4>
+          <button data-view="settings" data-label="General Settings" data-icon="categories" data-perm="settings.manage"><span class="icon"></span> General Settings</button>
+          <button data-view="appearance" data-label="Appearance" data-icon="sparkle" data-perm="settings.manage"><span class="icon"></span> Appearance</button>
+          <button data-view="seo" data-label="SEO Settings" data-icon="search" data-perm="settings.manage"><span class="icon"></span> SEO Settings</button>
+          <button data-view="email-settings" data-label="Email Settings" data-icon="messages" data-perm="settings.manage"><span class="icon"></span> Email Settings</button>
+          <button data-view="regional" data-label="Regional Settings" data-icon="overview" data-perm="settings.manage"><span class="icon"></span> Regional Settings</button>
+          <button data-view="pages" data-label="Legal Pages" data-icon="messages" data-perm="content.edit"><span class="icon"></span> Legal Pages</button>
+        </div>
+        <div class="nav-group"><h4>System</h4>
+          <button data-view="users" data-label="Admin Users &amp; Roles" data-icon="subscribers" data-perm="users.manage"><span class="icon"></span> Admin Users &amp; Roles</button>
+          <button data-view="audit" data-label="Activity Logs" data-icon="inbox" data-perm="audit.view"><span class="icon"></span> Activity Logs</button>
+          <button data-view="health" data-label="System Health" data-icon="check" data-perm="system.view"><span class="icon"></span> System Health</button>
+        </div>
       </nav>
       <div class="sidebar-footer">
         <button class="logout-btn" id="logoutBtn" data-icon="logout"><span class="icon"></span> Log out</button>
@@ -67,30 +92,38 @@
 
       <!-- Products -->
       <section id="view-products" hidden>
-        <div class="panel-head" style="margin-bottom:16px;">
-          <h3>All products</h3>
+        <div class="panel-head">
+          <div class="tab-bar" id="productStatusTabs"></div>
           <button class="btn btn-primary btn-sm" id="addProductBtn" data-icon="plus"><span class="icon"></span> Add product</button>
         </div>
-        <div class="panel" style="padding:0;overflow-x:auto;">
+        <div class="filter-bar"><input type="search" class="input" id="productSearch" placeholder="Search products" aria-label="Search products" /></div>
+        <div class="panel table-panel">
           <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Badges</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="productsTableBody">
-              <tr>
-                <td colspan="6" class="empty-state">Loading…</td>
-              </tr>
-            </tbody>
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Labels</th><th>Actions</th></tr></thead>
+            <tbody id="productsTableBody"><tr><td colspan="6" class="empty-state">Loading…</td></tr></tbody>
           </table>
         </div>
+        <div id="productPager"></div>
       </section>
+
+      <section id="view-product-editor" hidden></section>
+      <section id="view-analytics" hidden></section>
+      <section id="view-media" hidden></section>
+      <section id="view-homepage" hidden></section>
+      <section id="view-banners" hidden></section>
+      <section id="view-pages" hidden></section>
+      <section id="view-ai" hidden></section>
+      <section id="view-teach" hidden></section>
+      <section id="view-knowledge" hidden></section>
+      <section id="view-ai-activity" hidden></section>
+      <section id="view-settings" hidden></section>
+      <section id="view-appearance" hidden></section>
+      <section id="view-seo" hidden></section>
+      <section id="view-email-settings" hidden></section>
+      <section id="view-regional" hidden></section>
+      <section id="view-users" hidden></section>
+      <section id="view-audit" hidden></section>
+      <section id="view-health" hidden></section>
 
       <!-- Categories -->
       <section id="view-categories" hidden>
@@ -265,87 +298,6 @@
     </main>
   </div>
 
-  <!-- Product modal -->
-  <div class="modal-overlay" id="productModalOverlay">
-    <div class="modal">
-      <div class="modal-head">
-        <h3 id="productModalTitle">Add Product</h3>
-        <button class="modal-close" id="productModalClose" data-icon="close" aria-label="Close"><span class="icon"></span></button>
-      </div>
-      <form id="productForm">
-        <input type="hidden" id="productId" />
-        <div class="form-grid">
-          <div class="field span-2">
-            <label>Product name</label>
-            <input type="text" id="pName" required minlength="3" />
-          </div>
-          <div class="field span-2">
-            <label>Description</label>
-            <textarea id="pDescription" rows="3"></textarea>
-          </div>
-          <div class="field">
-            <label>Price (₦)</label>
-            <input type="number" id="pPrice" min="0" step="0.01" required />
-          </div>
-          <div class="field">
-            <label>Discount (%)</label>
-            <input type="number" id="pDiscount" min="0" max="100" step="0.01" value="0" />
-          </div>
-          <div class="field">
-            <label>Category</label>
-            <select id="pCategory"></select>
-          </div>
-          <div class="field">
-            <label>Availability</label>
-            <select id="pAvailability">
-              <option value="in_stock">In stock</option>
-              <option value="limited">Limited stock</option>
-              <option value="out_of_stock">Out of stock</option>
-            </select>
-          </div>
-          <div class="field span-2">
-            <label>Affiliate link</label>
-            <input type="url" id="pLink" placeholder="https://…" required />
-          </div>
-          <div class="field">
-            <label for="pRating">Rating (0-5), optional</label>
-            <input type="number" id="pRating" min="0" max="5" step="0.1" placeholder="Leave empty if unknown" />
-          </div>
-          <div class="field">
-            <label for="pRatingCount">Number of ratings</label>
-            <input type="number" id="pRatingCount" min="0" step="1" placeholder="From the retailer's page" />
-          </div>
-          <div class="field span-2">
-            <div class="checkbox-row"><input type="checkbox" id="pFeatured" /><label for="pFeatured"
-                style="margin:0;">Mark as Featured</label></div>
-            <div class="checkbox-row" style="margin-top:8px;"><input type="checkbox" id="pDeal" /><label for="pDeal"
-                style="margin:0;">Mark as Deal</label></div>
-            <div class="checkbox-row" style="margin-top:8px;"><input type="checkbox" id="pVerified" /><label for="pVerified"
-                style="margin:0;">Verified deal: I checked this price and discount on the retailer's page</label></div>
-          </div>
-
-          <div class="field span-2">
-            <label>Specifications</label>
-            <div id="specRows"></div>
-            <button type="button" class="btn btn-ghost btn-sm" id="addSpecRow" data-icon="plus"><span class="icon"></span> Add spec</button>
-          </div>
-
-          <div class="field span-2">
-            <label>Images (up to 8)</label>
-            <input type="file" id="pImages" accept="image/*" multiple />
-            <div class="image-preview-row" id="existingImages"></div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;margin-top:22px;">
-          <button type="submit" class="btn btn-primary">Save Product</button>
-          <button type="button" class="btn btn-ghost" id="cancelProductBtn">Cancel</button>
-        </div>
-        <div class="form-msg" id="productFormMsg" style="display:none;"></div>
-      </form>
-    </div>
-  </div>
-
   <!-- Category modal -->
   <div class="modal-overlay" id="categoryModalOverlay">
     <div class="modal" style="max-width:420px;">
@@ -368,6 +320,7 @@
           </select>
         </div>
         <div class="field"><label>Description</label><textarea id="cDescription" rows="2"></textarea></div>
+        <div class="field"><label>Picture (optional, replaces the icon)</label><div class="media-field" data-media-field><img src="" alt="" hidden /><input type="hidden" id="cImage" /><div class="row-actions"><button type="button" class="btn btn-ghost btn-sm" data-media-choose>Choose from Media Library</button><button type="button" class="btn btn-ghost btn-sm" data-media-clear hidden>Remove</button></div></div></div>
         <div style="display:flex;gap:10px;margin-top:8px;">
           <button type="submit" class="btn btn-primary">Save Category</button>
           <button type="button" class="btn btn-ghost" id="cancelCategoryBtn">Cancel</button>
@@ -408,7 +361,7 @@
             <input type="text" id="campaignHeading" required minlength="3" maxlength="150" />
           </div>
           <div class="field span-2">
-            <label for="campaignBody">Message</label>
+            <label for="campaignBody">Message <button type="button" class="ai-mini" id="campaignAi" hidden>✦ Draft with AI</button></label>
             <textarea id="campaignBody" rows="4"></textarea>
           </div>
           <div class="field span-2">
@@ -452,8 +405,15 @@
 
   <script src="/js/api.js"></script>
   <script src="/js/icons.js"></script>
+  <script src="/admin/js/ui.js"></script>
+  <script src="/admin/js/rich-editor.js"></script>
+  <script src="/admin/js/media.js"></script>
   <script src="/admin/js/dashboard.js"></script>
   <script src="/admin/js/email.js"></script>
+  <script src="/admin/js/product-editor.js"></script>
+  <script src="/admin/js/settings.js"></script>
+  <script src="/admin/js/ai.js"></script>
+  <script src="/admin/js/system.js"></script>
 </body>
 
 </html>

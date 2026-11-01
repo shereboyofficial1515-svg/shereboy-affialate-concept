@@ -27,7 +27,10 @@ const API = {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const message = data.message || (data.errors && data.errors.join(' ')) || 'Something went wrong. Please try again.';
-      throw new Error(message);
+      const error = new Error(message);
+      error.status = res.status;
+      error.data = data;
+      throw error;
     }
     return data;
   },
@@ -74,8 +77,15 @@ document.addEventListener('load', (e) => {
   if (e.target && e.target.tagName === 'IMG') e.target.classList.add('is-loaded');
 }, true);
 
+// Named for its history: shows prices in whichever currency General Settings names
 function formatNaira(value) {
-  return '₦' + Number(value).toLocaleString('en-NG', { maximumFractionDigits: 0 });
+  const regional = (window.SITE && window.SITE.regional) || { locale: 'en-NG', currency: 'NGN' };
+  try {
+    if (regional.currency === 'NGN') return '₦' + Number(value).toLocaleString(regional.locale, { maximumFractionDigits: 0 });
+    return Number(value).toLocaleString(regional.locale, { style: 'currency', currency: regional.currency, maximumFractionDigits: 0 });
+  } catch (e) {
+    return `${regional.currency} ${Number(value).toLocaleString()}`;
+  }
 }
 
 // Escapes text for safe use as both HTML content AND inside quoted

@@ -3,6 +3,7 @@
 // are hidden rather than left empty, and a failure offers a retry.
 
 const HOME_SECTIONS = ['featured', 'deals', 'trending', 'recent', 'recommended'];
+let disabledSections = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
   bindHeroSearch();
@@ -50,10 +51,48 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-retry]')) loadHome();
 });
 
+// The order and switches chosen in the Homepage Editor
+function applySectionLayout(sections) {
+  const wrap = document.getElementById('homeSections');
+  disabledSections = new Set();
+  let middleSlot = document.querySelector('[data-banner-slot="home_middle"]');
+  if (!middleSlot) {
+    middleSlot = document.createElement('section');
+    middleSlot.className = 'banner-slot';
+    middleSlot.dataset.bannerSlot = 'home_middle';
+    middleSlot.hidden = true;
+    middleSlot.innerHTML = '<div class="container"></div>';
+  }
+  (sections || []).forEach(({ key, enabled }, index) => {
+    const el = document.getElementById(`section-${key}`);
+    if (!el) return;
+    wrap.append(el);
+    if (index === Math.floor(sections.length / 2) - 1) wrap.append(middleSlot);
+    if (!enabled) {
+      disabledSections.add(key);
+      el.hidden = true;
+    }
+  });
+}
+
+function renderBanners(banners) {
+  document.querySelectorAll('[data-banner-slot]').forEach((slot) => {
+    const items = banners.filter((b) => b.placement === slot.dataset.bannerSlot);
+    slot.hidden = !items.length;
+    slot.querySelector('.container').innerHTML = items.map((b) => {
+      const inner = `${b.image_url ? `<img src="${escapeHtml(b.image_url)}" alt="" loading="lazy" decoding="async" />` : ''}<div class="site-banner-text"><b>${escapeHtml(b.title)}</b>${b.message ? `<span>${escapeHtml(b.message)}</span>` : ''}</div>`;
+      const cls = `site-banner${b.image_url ? '' : ' no-image'}`;
+      return b.link_url ? `<a class="${cls}" href="${escapeHtml(b.link_url)}">${inner}</a>` : `<div class="${cls}">${inner}</div>`;
+    }).join('');
+  });
+}
+
 function render(data) {
+  applySectionLayout(data.sections);
+  renderBanners(data.banners || []);
   let shown = 0;
   HOME_SECTIONS.forEach((key) => {
-    const items = data[key] || [];
+    const items = disabledSections.has(key) ? [] : (data[key] || []);
     document.getElementById(`section-${key}`).hidden = !items.length;
     document.getElementById(`grid-${key}`).innerHTML = items.map(productCardHTML).join('');
     shown += items.length;
@@ -65,12 +104,12 @@ function render(data) {
   renderStats(data.stats || {});
 
   const testimonials = data.testimonials || [];
-  document.getElementById('section-testimonials').hidden = !testimonials.length;
+  document.getElementById('section-testimonials').hidden = !testimonials.length || disabledSections.has('testimonials');
   document.getElementById('homeTestimonials').innerHTML = testimonials.map(testimonialCardHTML).join('');
 }
 
 function renderCategories(categories) {
-  document.getElementById('section-categories').hidden = !categories.length;
+  document.getElementById('section-categories').hidden = !categories.length || disabledSections.has('categories');
   document.getElementById('homeCategoryGrid').innerHTML = categories.map(categoryCardHTML).join('');
   document.getElementById('heroChips').innerHTML = categories.slice(0, 4)
     .map((c) => `<a href="/products.html?category=${encodeURIComponent(c.slug)}">${escapeHtml(c.name)}</a>`).join('');

@@ -13,13 +13,23 @@ const COLUMN_DEFAULTS = {
   email_campaigns: () => ({ status: 'draft', recipient_count: 0, sent_count: 0, failed_count: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }),
   product_clicks: () => ({ created_at: new Date().toISOString() }),
   testimonials: () => ({ is_published: true, created_at: new Date().toISOString() }),
-  products: () => ({ date_added: new Date().toISOString(), is_verified: false, rating: null, rating_count: null, specifications: {}, images: [] })
+  products: () => ({ date_added: new Date().toISOString(), status: 'published', description_format: 'text', draft: null, draft_saved_at: null, publish_at: null, short_description: null, seo_title: null, seo_description: null, is_verified: false, rating: null, rating_count: null, specifications: {}, images: [] }),
+  media: () => ({ created_at: new Date().toISOString(), updated_at: new Date().toISOString(), storage_paths: [] }),
+  banners: () => ({ is_active: true, sort_order: 0, created_at: new Date().toISOString() }),
+  ai_instructions: () => ({ is_enabled: true, sort_order: 0, created_at: new Date().toISOString() }),
+  ai_knowledge: () => ({ is_enabled: true, created_at: new Date().toISOString() }),
+  ai_usage_logs: () => ({ input_tokens: 0, output_tokens: 0, created_at: new Date().toISOString() }),
+  admin_audit_log: () => ({ created_at: new Date().toISOString() }),
+  pages: () => ({ published_html: null, draft_html: '', updated_at: new Date().toISOString() }),
+  admin_roles: () => ({ created_at: new Date().toISOString() })
 };
 
 const UNIQUE = {
   subscribers: [['email']],
   email_logs: [['campaign_id', 'subscriber_id']],
   categories: [['slug']],
+  media_folders: [['name']],
+  admin_roles: [['email']],
   products: [['slug']]
 };
 
@@ -59,6 +69,7 @@ function createFakeSupabase(seed = {}) {
     neq(col, val) { this.filters.push((r) => get(this, r, col) != val); return this; } // eslint-disable-line eqeqeq
     gt(col, val) { this.filters.push((r) => r[col] > val); return this; }
     gte(col, val) { this.filters.push((r) => r[col] >= val); return this; }
+    lte(col, val) { this.filters.push((r) => r[col] !== null && r[col] <= val); return this; }
     in(col, vals) { this.filters.push((r) => vals.includes(r[col])); return this; }
     ilike(col, pattern) { const re = likeRe(pattern); this.filters.push((r) => re.test(String(r[col] ?? ''))); return this; }
     or(expr) {
@@ -149,7 +160,7 @@ function createFakeSupabase(seed = {}) {
       createBucket: async (name) => { buckets.add(name); return { data: { name }, error: null }; },
       from: (bucket) => ({
         upload: async (path, body, options) => { objects.set(`${bucket}/${path}`, { body, options }); return { data: { path }, error: null }; },
-        getPublicUrl: (path) => ({ data: { publicUrl: `https://storage.test/storage/v1/object/public/${bucket}/${path}` } }),
+        getPublicUrl: (path) => ({ data: { publicUrl: `${createFakeSupabase.storageBase || 'https://storage.test/storage/v1/object/public/'}${bucket}/${path}` } }),
         remove: async (paths) => { paths.forEach((p) => objects.delete(`${bucket}/${p}`)); return { data: paths, error: null }; }
       })
     },

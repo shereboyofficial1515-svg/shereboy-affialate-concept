@@ -8,6 +8,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const { cardProduct } = require('../services/productView');
+const settings = require('../services/settings');
 
 const SECTION_SIZE = 4;
 const CACHE_MS = 60 * 1000;
@@ -45,7 +46,7 @@ async function trending(limit) {
     .slice(0, limit)
     .map(([id]) => id);
   const rows = await Promise.all(ids.map((id) => Product.findById(id)));
-  return rows.filter(Boolean);
+  return rows.filter((p) => p && p.status === 'published');
 }
 
 async function publishedTestimonials() {
@@ -56,17 +57,37 @@ async function publishedTestimonials() {
   return data || [];
 }
 
+/** Banners currently switched on and inside their date range. */
+async function activeBanners() {
+  const { data, error } = await supabaseAdmin
+    .from('banners').select('id, title, message, image_url, link_url, placement, sort_order, starts_at, ends_at')
+    .eq('is_active', true).order('sort_order', { ascending: true });
+  if (error) throw new Error(error.message);
+  const now = new Date();
+  return (data || []).filter((b) => (!b.starts_at || new Date(b.starts_at) <= now) && (!b.ends_at || new Date(b.ends_at) >= now));
+}
+
+/** The administrator's hand-picked products, in their order; otherwise the Featured flag. */
+async function featuredProducts(ids) {
+  if (!ids || !ids.length) return (await Product.list({ featuredOnly: true, perPage: 12 })).items;
+  const rows = await Promise.all(ids.map((id) => Product.findById(id)));
+  return rows.filter((p) => p && p.status === 'published');
+}
+
 async function buildHome() {
   const noProducts = { items: [], total: 0 };
-  const [featured, deals, recent, savings, clicked, categories, testimonials] = await Promise.all([
-    settled(Product.list({ featuredOnly: true, perPage: 12 }), noProducts, 'featured'),
+  const { homepage } = await settings.loadAll();
+  const [featuredItems, deals, recent, savings, clicked, categories, testimonials, banners] = await Promise.all([
+    settled(featuredProducts(homepage.featured_product_ids), [], 'featured'),
     settled(Product.list({ dealOnly: true, perPage: 16 }), noProducts, 'deals'),
     settled(Product.list({ perPage: 24 }), null, 'recent'),
     settled(Product.list({ sort: 'discount_desc', perPage: 24 }), noProducts, 'savings'),
     settled(trending(16), [], 'trending'),
     settled(Category.all(), null, 'categories'),
-    settled(publishedTestimonials(), [], 'testimonials')
+    settled(publishedTestimonials(), [], 'testimonials'),
+    settled(activeBanners(), [], 'banners')
   ]);
+  const featured = { items: featuredItems };
 
   const shown = new Set();
   const take = (items, keep = () => true) => {
@@ -99,8 +120,10 @@ async function buildHome() {
       .slice(0, 3),
     categories: categories === null ? null : categories
       .filter((c) => c.product_count > 0)
-      .map(({ id, name, slug, icon, product_count }) => ({ id, name, slug, icon, product_count })),
+      .map(({ id, name, slug, icon, image_url, product_count }) => ({ id, name, slug, icon, image_url, product_count })),
     testimonials,
+    banners,
+    sections: homepage.sections,
     stats: {
       products: recent ? recent.total : null,
       categories: categories === null ? null : categories.filter((c) => c.product_count > 0).length

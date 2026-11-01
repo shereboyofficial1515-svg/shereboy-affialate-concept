@@ -36,14 +36,14 @@ exports.list = asyncHandler(async (req, res) => {
 
 exports.getBySlug = asyncHandler(async (req, res) => {
   const product = await Product.findBySlug(req.params.slug);
-  if (!product) return res.status(404).json({ success: false, message: 'Product not found.' });
+  if (!product || product.status !== 'published') return res.status(404).json({ success: false, message: 'Product not found.' });
   const related = product.category_id ? await Product.related(product.category_id, product.id) : [];
   res.json({ success: true, product: publicProduct(product), related: related.map(publicProduct) });
 });
 
 exports.getById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
-  if (!product) return res.status(404).json({ success: false, message: 'Product not found.' });
+  if (!product || product.status !== 'published') return res.status(404).json({ success: false, message: 'Product not found.' });
   res.json({ success: true, product: publicProduct(product) });
 });
 
@@ -74,6 +74,7 @@ exports.create = asyncHandler(async (req, res) => {
     is_featured: req.body.is_featured === 'true' || req.body.is_featured === true,
     is_deal: req.body.is_deal === 'true' || req.body.is_deal === true,
     images,
+    status: 'published',
     ...readVerified(req.body),
     ...readRating(req.body)
   });

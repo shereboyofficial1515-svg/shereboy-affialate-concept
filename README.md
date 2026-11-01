@@ -12,7 +12,7 @@ JavaScript (ES6+). The backend is Node.js + Express, with **Supabase**
 
 ## 1. Requirements
 
-- Node.js 18 or newer
+- Node.js 22.12 or newer
 - npm
 - A free [Supabase](https://supabase.com) project
 
@@ -137,6 +137,22 @@ is left alone and reported, so it can be uploaded by hand.
 
 New uploads are converted on the server to WebP (1200px, plus a 480px copy for phones) and a 480px
 JPEG for email clients.
+
+## 4b-2. The admin dashboard
+
+Almost everything is managed at `/admin/dashboard.html`, without code changes:
+
+- **Media Library**: upload (drag-and-drop or bulk), folders, search and filters, metadata, reuse. Files
+  are in Supabase Storage, so they survive deploys. A file in use can't be deleted without a warning.
+- **Products**: Draft → Pending review → Published / Scheduled → Archived. Edits autosave to a private
+  draft; visitors see the published version until someone presses Publish.
+- **Website settings**: identity, appearance (with live preview), homepage, banners, SEO, email, regional,
+  and legal pages with draft / preview / publish. They apply across the site on save.
+- **AI**: pick a provider and limits (AI Control Centre), write rules (Teach Your AI), add reference
+  material (Knowledge Base), see usage (AI Activity). Rules are sent with each matching request. Safety
+  rules in `services/ai/engine.js`, such as never inventing specifications, can't be overridden.
+- **Roles**: *owner* (named in `ADMIN_EMAILS`), *admin*, *editor*. See Admin Users & Roles for the matrix.
+  Sensitive changes appear in Activity Logs.
 
 ## 4c. Newsletter and email (Resend)
 

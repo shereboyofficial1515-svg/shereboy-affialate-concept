@@ -2,7 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const categoryController = require('../controllers/categoryController');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePermission } = require('../middleware/auth');
+
+const canEdit = [requireAuth, requirePermission('products.publish')];
 
 // Ids are numbers; anything else is simply not found
 router.param('id', (req, res, next, id) => {
@@ -11,8 +13,8 @@ router.param('id', (req, res, next, id) => {
 });
 
 router.get('/', categoryController.list);
-router.post('/', requireAuth, categoryController.create);
-router.put('/:id', requireAuth, categoryController.update);
-router.delete('/:id', requireAuth, categoryController.remove);
+router.post('/', canEdit, categoryController.create);
+router.put('/:id', canEdit, categoryController.update);
+router.delete('/:id', canEdit, categoryController.remove);
 
 module.exports = router;
