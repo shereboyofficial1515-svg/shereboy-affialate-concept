@@ -1,6 +1,7 @@
 // controllers/categoryController.js
 const Category = require('../models/Category');
 const asyncHandler = require('../utils/asyncHandler');
+const { notifyPartners } = require('../services/partnerWebhook');
 
 exports.list = asyncHandler(async (req, res) => {
   const categories = await Category.all();
@@ -27,6 +28,7 @@ exports.update = asyncHandler(async (req, res) => {
     icon: req.body.icon,
     description: req.body.description
   });
+  notifyPartners('category.updated', category);
   res.json({ success: true, message: 'Category updated.', category });
 });
 
@@ -34,5 +36,6 @@ exports.remove = asyncHandler(async (req, res) => {
   const existing = await Category.findById(req.params.id);
   if (!existing) return res.status(404).json({ success: false, message: 'Category not found.' });
   await Category.remove(req.params.id);
+  notifyPartners('category.deleted', existing);
   res.json({ success: true, message: 'Category deleted.' });
 });

@@ -50,6 +50,8 @@ app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/testimonials', require('./routes/testimonialRoutes'));
+// Read-only public product feed for partner sites (SHEREBOY TECH LTD website)
+app.use('/api/public', require('./routes/publicRoutes'));
 
 // ---------- Protected admin PAGE (checked before static serving) ----------
 app.use('/admin', require('./routes/adminPageRoutes'));
@@ -73,13 +75,16 @@ app.use((req, res) => {
 
 // ---------- Central error handler ----------
 app.use((err, req, res, next) => {
-  console.error(err.stack || err.message);
+  // Expected client errors (bad query parameters, rejected uploads) aren't server faults
+  const clientError = (err.status && err.status < 500) || (err.message && err.message.includes('Only JPG'));
+  if (!clientError) console.error(err.stack || err.message);
   if (err.message && err.message.includes('Only JPG')) {
     return res.status(400).json({ success: false, message: err.message });
   }
   res.status(err.status || 500).json({
     success: false,
-    message: process.env.NODE_ENV === 'production' ? 'Something went wrong.' : err.message
+    // err.expose marks messages written for the client (e.g. validation errors)
+    message: err.expose || process.env.NODE_ENV !== 'production' ? err.message : 'Something went wrong.'
   });
 });
 
