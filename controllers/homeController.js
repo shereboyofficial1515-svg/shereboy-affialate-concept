@@ -137,12 +137,12 @@ exports.home = asyncHandler(async (req, res) => {
   if (!cache || Date.now() > cache.expires) {
     const payload = await buildHome();
     cache = payload.degraded ? null : { payload, expires: Date.now() + CACHE_MS };
-    res.set('Cache-Control', payload.degraded ? 'no-store' : 'public, max-age=30');
+    res.set('Cache-Control', payload.degraded ? 'no-store' : 'no-cache');
     return res.status(payload.degraded ? 503 : 200).json(
       payload.degraded ? { success: false, message: 'Products are temporarily unavailable. Please try again shortly.' } : payload
     );
   }
-  res.set('Cache-Control', 'public, max-age=30');
+  res.set('Cache-Control', 'no-cache');
   res.json(cache.payload);
 });
 

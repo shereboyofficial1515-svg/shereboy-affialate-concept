@@ -86,7 +86,7 @@ async function loadAuditView() {
     const { entries, page, totalPages } = await API.get(`/api/admin/audit?page=${auditPage}`);
     section.innerHTML = `<div class="panel table-panel"><table><thead><tr><th>When</th><th>Who</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody>
       ${entries.length ? entries.map((l) => `<tr>
-        <td class="muted-cell">${new Date(l.created_at).toLocaleString()}</td>
+        <td class="muted-cell">${formatDateTime(l.created_at)}</td>
         <td>${escapeHtml(l.actor_email || '—')}</td>
         <td><code>${escapeHtml(l.action)}</code></td>
         <td>${escapeHtml([l.target_type, l.target_id].filter(Boolean).join(' '))}</td>

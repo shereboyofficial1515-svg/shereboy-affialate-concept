@@ -115,6 +115,7 @@ const siteAdmin = require('./controllers/siteAdminController');
 app.get('/site-config.js', siteAdmin.siteConfigJs);
 app.get('/theme.css', siteAdmin.themeCssFile);
 app.get('/robots.txt', siteAdmin.robots);
+app.get('/site.webmanifest', siteAdmin.manifest);
 app.get(['/', /^\/[a-z0-9-]+\.html$/], require('./services/siteRenderer').serveHtml);
 
 // ---------- Protected admin PAGE (checked before static serving) ----------
@@ -173,6 +174,8 @@ app.use((err, req, res, next) => {
 
 // Tests import the app and choose their own port
 if (require.main === module) {
+  require('./services/settings').loadAll().catch(() => {});
+
   // Publish anything whose scheduled time has arrived
   const { publishDue } = require('./controllers/productAdminController');
   publishDue();

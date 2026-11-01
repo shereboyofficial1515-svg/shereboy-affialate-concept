@@ -144,6 +144,8 @@ td.num { font-family: var(--font-body); }
   .sidebar.open { transform: none; }
   .menu-toggle { display: inline-flex; }
   .main { padding: 62px 14px 24px; }
+  /* The fixed menu button would otherwise sit on top of it when scrolled */
+  .editor-bar { position: static; }
   .form-grid { grid-template-columns: minmax(0, 1fr); }
   .dash-header h1 { font-size: 1.25rem; }
   th, td { padding: 10px 8px; }

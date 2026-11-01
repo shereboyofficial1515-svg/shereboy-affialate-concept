@@ -59,10 +59,11 @@ function structuredData(product, url) {
 }
 
 function replaceMeta(html, id, value) {
-  return html.replace(new RegExp(`(<meta id="${id}"[^>]*content=")[^"]*(")`), `$1${attr(value)}$2`);
+  return html.replace(new RegExp(`(<meta id="${id}"[^>]*content=")[^"]*(")`), (_, open, close) => `${open}${attr(value)}${close}`);
 }
 
 router.get('/product-details.html', asyncHandler(async (req, res, next) => {
+  const all = await settings.loadAll();
   const slug = req.query.slug;
   if (typeof slug !== 'string' || !/^[a-z0-9-]{1,200}$/.test(slug)) return next(); // the page shows its own message
 
@@ -81,14 +82,13 @@ router.get('/product-details.html', asyncHandler(async (req, res, next) => {
 
   product = publicProduct(product);
   const url = `${site()}/product-details.html?slug=${encodeURIComponent(product.slug)}`;
-  const all = await settings.loadAll();
   const title = `${product.seo_title || String(product.name).trim()} — ${all.identity.site_name}`;
   const description = summary(product);
   // The JPEG copy, because not every link-preview service displays WebP
   const previewImage = (url) => (/\/opt-[^/]+\.webp$/.test(url) ? url.replace(/\.webp$/, '-w480.jpg') : url);
   const image = product.images.length ? absolute(previewImage(product.images[0])) : `${site()}/images/brand/og-default.png`;
 
-  let html = applySettings(template('product-details.html'), all).replace(/<title[^>]*>[^<]*<\/title>/, `<title id="pageTitle">${attr(title)}</title>`);
+  let html = applySettings(template('product-details.html'), all).replace(/<title[^>]*>[^<]*<\/title>/, () => `<title id="pageTitle">${attr(title)}</title>`);
   html = replaceMeta(html, 'pageDescription', description);
   html = replaceMeta(html, 'ogTitle', title);
   html = replaceMeta(html, 'ogDescription', description);
@@ -96,7 +96,7 @@ router.get('/product-details.html', asyncHandler(async (req, res, next) => {
   html = replaceMeta(html, 'ogImage', image);
   html = replaceMeta(html, 'twitterImage', image);
   html = html.replace('<!-- structured-data -->',
-    `<link rel="canonical" href="${attr(url)}" />\n  <script type="application/ld+json">${structuredData(product, url)}</script>`);
+    () => `<link rel="canonical" href="${attr(url)}" />\n  <script type="application/ld+json">${structuredData(product, url)}</script>`);
 
   res.set('Cache-Control', 'public, max-age=60');
   res.type('html').send(html);
@@ -107,12 +107,14 @@ router.get('/sitemap.xml', asyncHandler(async (req, res) => {
   const { data, error } = await supabaseAdmin.from('products').select('slug, date_added, updated_at').eq('status', 'published').order('date_added', { ascending: false }).limit(5000);
   if (error) throw new Error(`Failed to build sitemap: ${error.message}`);
   const { data: cats, error: catError } = await supabaseAdmin.from('categories').select('slug');
+  const { data: pages } = await supabaseAdmin.from('pages').select('slug, published_html, published_at');
   if (catError) throw new Error(`Failed to build sitemap: ${catError.message}`);
 
   const entry = (loc, lastmod) => `<url><loc>${attr(loc)}</loc>${lastmod ? `<lastmod>${String(lastmod).slice(0, 10)}</lastmod>` : ''}</url>`;
   const urls = [
     entry(`${site()}/`),
     ...(seo.sitemap_pages ? STATIC_PAGES.filter((p) => p !== '/').map((p) => entry(`${site()}${p}`)) : []),
+    ...(seo.sitemap_pages ? (pages || []).filter((p) => p.published_html && !STATIC_PAGES.includes(`/${p.slug}.html`)).map((p) => entry(`${site()}/${p.slug}.html`, p.published_at)) : []),
     ...(seo.sitemap_categories ? (cats || []).map((c) => entry(`${site()}/products.html?category=${encodeURIComponent(c.slug)}`)) : []),
     ...(seo.sitemap_products ? (data || []).map((p) => entry(`${site()}/product-details.html?slug=${encodeURIComponent(p.slug)}`, p.updated_at || p.date_added)) : [])
   ];

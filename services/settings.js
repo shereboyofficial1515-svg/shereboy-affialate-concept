@@ -208,8 +208,9 @@ function cached() {
   return cache || merge([]);
 }
 
+/** Forces a re-read. The last known values stay readable until it completes. */
 function invalidate() {
-  cache = null;
+  cacheExpires = 0;
   version = Date.now();
 }
 
@@ -243,9 +244,30 @@ async function save(group, input, actorEmail) {
     if (error) throw new Error(`Failed to save settings: ${error.message}`);
   }
   invalidate();
+  await loadAll();
   return { value };
+}
+
+/** A price in the currency chosen in Regional Settings. */
+function formatMoney(value) {
+  const { locale, currency } = cached().regional;
+  const amount = Number(value);
+  try {
+    if (currency === 'NGN') return `₦${amount.toLocaleString(locale, { maximumFractionDigits: 0 })}`;
+    return amount.toLocaleString(locale, { style: 'currency', currency, maximumFractionDigits: 0 });
+  } catch {
+    return `${currency} ${amount.toLocaleString()}`;
+  }
+}
+
+/** A date in the format and time zone chosen in Regional Settings. */
+function formatDate(value) {
+  const { locale, timezone, date_format: format } = cached().regional;
+  const options = format === 'numeric' ? { year: 'numeric', month: '2-digit', day: '2-digit' }
+    : { year: 'numeric', month: format === 'long' ? 'long' : 'short', day: 'numeric' };
+  return new Date(value).toLocaleDateString(locale, { ...options, timeZone: timezone });
 }
 
 const siteUrl = (all = cached()) => (all.seo.canonical_base || process.env.PUBLIC_SITE_URL || 'https://shereboyaffiliateconcept.shop').replace(/\/+$/, '');
 
-module.exports = { GROUPS, SCHEMA, loadAll, cached, invalidate, currentVersion, validate, save, defaultsFor, siteUrl };
+module.exports = { GROUPS, SCHEMA, loadAll, cached, invalidate, currentVersion, validate, save, defaultsFor, siteUrl, formatMoney, formatDate };

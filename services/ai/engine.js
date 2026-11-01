@@ -254,7 +254,7 @@ async function run(options) {
       model: config.model,
       system,
       messages,
-      maxTokens: config.max_output_tokens,
+      maxTokens: options.maxTokens ? Math.min(options.maxTokens, config.max_output_tokens) : config.max_output_tokens,
       temperature: config.temperature
     });
     const text = stripFences(result.text);

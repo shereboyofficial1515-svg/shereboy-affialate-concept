@@ -404,6 +404,79 @@ test('legal pages: draft stays private until published; HTML is cleaned', async 
   assert.ok((await app.get('/terms.html')).text.includes('Terms'), 'unmanaged pages keep their existing text');
 });
 
+test('dollar signs in settings and product text stay exactly as typed', async () => {
+  await saveSettings('homepage', { hero_headline: 'Save $100 today', hero_highlight: 'Cost $1 and $& more', hero_description: 'From $2 only.' });
+  await saveSettings('seo', { meta_title: 'Deals from $1', meta_description: 'Only $& here' });
+  const home = (await app.get('/')).text;
+  assert.ok(home.includes('Save $100 today<br /><em>Cost $1 and $&amp; more</em>'), 'hero headline');
+  assert.ok(home.includes('From $2 only.'), 'hero description');
+  assert.ok(home.includes('<title>Deals from $1</title>'), 'meta title');
+  assert.ok(home.includes('content="Only $&amp; here"'), 'meta description');
+  await saveSettings('homepage', { hero_headline: 'Smart finds.', hero_highlight: 'Honest prices.', hero_description: 'x' });
+  await saveSettings('seo', { meta_title: 'SHEREBOY AFFILIATE CONCEPT — Smart finds. Honest prices.', meta_description: 'x' });
+
+  const { json } = await app.post('/api/admin/products', { name: 'Lamp worth $1 and $& more', seo_title: 'Lamp for $1', seo_description: 'Costs $2 only', price: 5, affiliate_link: 'https://shop.test/d', description: '<p>x</p>', images: [IMG] }, OWNER);
+  await app.post(`/api/admin/products/${json.id}/publish`, {}, OWNER);
+  const row = app.db.table('products').find((p) => p.id === json.id);
+  const page = (await app.get(`/product-details.html?slug=${row.slug}`)).text;
+  assert.ok(page.includes('<title id="pageTitle">Lamp for $1 —'), 'product title');
+  assert.ok(page.includes('content="Costs $2 only"'), 'product description');
+  assert.ok(JSON.parse(page.match(/ld\+json">(.*?)<\/script>/)[1]).name.includes('$1 and $&'), 'structured data');
+  await app.del(`/api/admin/products/${json.id}`, OWNER);
+});
+
+test('the legal page template is not a public page', async () => {
+  const res = await app.get('/legal.html');
+  assert.equal(res.status, 404);
+  assert.ok(!res.text.includes('<!-- page-content -->'));
+});
+
+test('a product started without a title gets a proper address when published', async () => {
+  const { json } = await app.post('/api/admin/products', {}, OWNER);
+  await app.put(`/api/admin/products/${json.id}/draft`, { name: 'Named Lamp', price: 5, affiliate_link: 'https://shop.test/n', description: '<p>x</p>', images: [IMG] }, OWNER);
+  const published = await app.post(`/api/admin/products/${json.id}/publish`, {}, OWNER);
+  assert.match(published.json.slug, /^named-lamp-/);
+  await app.del(`/api/admin/products/${json.id}`, OWNER);
+});
+
+test('regional settings reach emails, the partner feed and legal page dates; saved values apply at once', async () => {
+  await saveSettings('regional', { currency: 'GHS', locale: 'en-GH', date_format: 'numeric' });
+  // Read straight after saving, with no page view in between
+  assert.equal(require('../services/settings').cached().regional.currency, 'GHS');
+  assert.equal((await app.get('/api/public/products')).json.data.products[0].price.currency, 'GHS');
+  const templates = require('../services/email/templates');
+  const mail = templates.campaignEmail({ campaign: { subject: 's', heading: 'h', body: 'b' }, products: [{ name: 'Lamp', slug: 'l', price: 1000, final_price: 1000, discount_percent: 0, images: [] }], unsubscribeToken: 't' });
+  assert.ok(!mail.html.includes('₦') && /GH|1,000/.test(mail.html), 'no hard-coded naira in email');
+  await app.put('/api/admin/pages/returns', { title: 'Returns', draft_html: '<p>Terms</p>' }, OWNER);
+  await app.post('/api/admin/pages/returns/publish', {}, OWNER);
+  assert.match((await app.get('/returns.html')).text, /Last updated \d{2}\/\d{2}\/\d{4}/);
+  assert.ok((await app.get('/sitemap.xml')).text.includes('/returns.html'), 'published pages are in the sitemap');
+  await saveSettings('regional', { currency: 'NGN', locale: 'en-NG', date_format: 'medium' });
+});
+
+test('the app manifest follows the website name', async () => {
+  await saveSettings('identity', { site_name: 'Acme Deals' });
+  const { json } = await app.get('/site.webmanifest');
+  assert.equal(json.name, 'Acme Deals');
+  assert.equal(json.short_name, 'Acme');
+  await saveSettings('identity', { site_name: 'SHEREBOY AFFILIATE CONCEPT' });
+});
+
+test('the older product route also cleans formatted descriptions', async () => {
+  await app.put('/api/admin/products/1/draft', { description: '<p>Formatted</p>' }, OWNER);
+  await app.post('/api/admin/products/1/publish', {}, OWNER);
+  const form = new FormData();
+  form.append('name', 'Live Product');
+  form.append('price', '1000');
+  form.append('affiliate_link', 'https://shop.test/1');
+  form.append('description', '<p>Fine</p><script>alert(1)</script>');
+  const res = await fetch(`${app.base}/api/products/1`, { method: 'PUT', headers: { cookie: 'sb_token=admin' }, body: form });
+  assert.equal(res.status, 200);
+  assert.equal((await app.get('/api/products/1')).json.product.description, '<p>Fine</p>');
+  app.db.table('products')[0].description = 'Original description, with its own words.';
+  app.db.table('products')[0].description_format = 'text';
+});
+
 // ---------- AI ----------
 test('API keys are encrypted at rest and never returned', async () => {
   const secret = 'sk-very-secret-value-000111';
@@ -585,6 +658,7 @@ test('the customer assistant uses the provider, its own rules, and only publishe
   assert.ok(system.includes('CHATRULE'));
   assert.ok(system.includes('Live Product'));
   assert.ok(!system.includes('Secret Unreleased Thing'), 'drafts are invisible to the assistant');
+  assert.ok(app.ai.requests.at(-1).body.generationConfig.maxOutputTokens <= 1500, 'visitor answers have a modest limit');
   await app.del(`/api/admin/products/${draft.json.id}`, OWNER);
 
   await app.put('/api/admin/ai/config', { capability_assistant: false }, OWNER);

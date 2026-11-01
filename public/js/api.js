@@ -15,7 +15,8 @@ const API = {
         res = await fetch(url, {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-          signal: AbortSignal.timeout ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined,
+          // Only reads time out here: an AI request or import can take longer, and the server limits those itself
+          signal: safeToRepeat && AbortSignal.timeout ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined,
           ...options
         });
         if (!(safeToRepeat && attempt === 1 && (res.status === 502 || res.status === 503))) break;

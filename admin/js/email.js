@@ -3,7 +3,7 @@
 // testimonial moderation. Loaded after dashboard.js; every API call behind these
 // views requires an administrator session.
 
-const fmtDate = (value) => (value ? new Date(value).toLocaleString() : '—');
+const fmtDate = (value) => (value ? formatDateTime(value) : '—');
 const STATUS_PILL = {
   pending: 'pill-gold', confirmed: 'pill-green', unsubscribed: 'pill-gray', bounced: 'pill-red', complained: 'pill-red',
   draft: 'pill-gray', sending: 'pill-blue', sent: 'pill-green', partial: 'pill-gold', failed: 'pill-red',
@@ -146,7 +146,7 @@ function renderProductPicker(selected = []) {
       <input type="checkbox" value="${Number(p.id)}" ${selected.includes(p.id) ? 'checked' : ''} />
       <img class="table-thumb" src="${escapeHtml((p.images && p.images[0]) || '/images/placeholder-product.svg')}" alt="" loading="lazy" />
       <span>${escapeHtml(p.name)}</span>
-      <span class="muted-cell">₦${Number(p.final_price).toLocaleString()}</span>
+      <span class="muted-cell">${formatNaira(p.final_price)}</span>
       ${p.images_missing ? '<span class="pill pill-red">no image</span>' : ''}
     </label>`).join('') || emptyStateHTML('No products yet.');
 }

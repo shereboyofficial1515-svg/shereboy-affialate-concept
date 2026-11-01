@@ -6,6 +6,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const span = el.querySelector('.icon');
     if (span) span.innerHTML = ICONS[el.dataset.icon] || '';
   });
+  if (window.SITE && window.SITE.logoAlt) document.querySelector('.sidebar .brand img').src = window.SITE.logoAlt;
+  if (window.SITE) {
+    document.querySelector('.sidebar .brand img').alt = window.SITE.name;
+    document.title = `Dashboard — ${window.SITE.name}`;
+  }
+  // Tapping beside the mobile menu closes it
+  document.querySelector('.main').addEventListener('click', closeMenu);
   await guardSession();
   applyPermissions();
   bindNav();
@@ -284,7 +291,7 @@ async function loadMessages() {
         <td>${escapeHtml(m.name)}<br><span style="color:var(--gray-500);font-size:0.78rem;">${escapeHtml(m.email)}</span></td>
         <td>${escapeHtml(m.subject || '—')}</td>
         <td style="max-width:320px;">${escapeHtml(m.message)}</td>
-        <td style="white-space:nowrap;color:var(--gray-500);font-size:0.8rem;">${new Date(m.created_at).toLocaleString()}</td>
+        <td style="white-space:nowrap;color:var(--gray-500);font-size:0.8rem;">${formatDateTime(m.created_at)}</td>
       </tr>`).join('') : `<tr><td colspan="4">${emptyStateHTML('No messages yet.')}</td></tr>`;
   } catch (err) {
     document.getElementById('messagesTableBody').innerHTML = `<tr><td colspan="4">${emptyStateHTML(err.message, 'warning')}</td></tr>`;
