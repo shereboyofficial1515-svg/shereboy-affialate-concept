@@ -16,7 +16,9 @@
 
   <div class="dash">
     <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" data-icon="menu"><span class="icon"></span></button>
+    <button type="button" class="nav-backdrop" id="navBackdrop" aria-label="Close menu" tabindex="-1"></button>
     <aside class="sidebar" id="sidebar">
+      <button type="button" class="drawer-close" id="drawerClose" aria-label="Close menu" data-icon="close"><span class="icon"></span></button>
       <a class="brand" href="/" title="View the live site"><img src="/images/brand/logo-horizontal-dark-bg.svg" alt="SHEREBOY AFFILIATE CONCEPT" /></a>
       <nav class="side-nav" aria-label="Dashboard">
         <div class="nav-group"><h4>Dashboard</h4>
@@ -61,6 +63,7 @@
         </div>
       </nav>
       <div class="sidebar-footer">
+        <div class="drawer-user" id="drawerUser"></div>
         <button class="logout-btn" id="logoutBtn" data-icon="logout"><span class="icon"></span> Log out</button>
       </div>
     </aside>

@@ -384,8 +384,10 @@ async function loadPagesView(activeSlug) {
           return loadPagesView(page.slug);
         }
         if (e.target.closest('[data-preview]')) {
-          await save();
-          window.open(`/admin/preview/page/${page.slug}`, '_blank', 'noopener');
+          await openAfterSaving(async () => {
+            await save();
+            return `/admin/preview/page/${page.slug}`;
+          });
         }
         if (e.target.closest('[data-publish]')) {
           if (!confirm(`Publish "${document.getElementById('pageTitle').value}" to the website?`)) return undefined;

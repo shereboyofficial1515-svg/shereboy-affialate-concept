@@ -11,9 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelector('.sidebar .brand img').alt = window.SITE.name;
     document.title = `Dashboard — ${window.SITE.name}`;
   }
-  // Tapping beside the mobile menu closes it
-  document.querySelector('.main').addEventListener('click', closeMenu);
-  await guardSession();
+  if (!(await guardSession())) return;
   applyPermissions();
   bindNav();
   bindLogout();
@@ -21,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindCategoryModal();
   if (Permissions.can('products.publish')) loadCategories();
   route();
+  window.dashboardStarted = true;
 });
 
 // Table and form buttons (inline onclick handlers are blocked by the CSP)
@@ -35,14 +34,28 @@ document.addEventListener('click', (e) => {
   actions[btn.dataset.action]?.();
 });
 
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-reload]')) window.location.reload();
+});
+
 // ---------- Session guard ----------
 async function guardSession() {
   try {
     const data = await API.get('/api/auth/me');
-    document.getElementById('adminName').textContent = `${data.user.name} (${data.user.role})`;
+    const label = `${data.user.name} (${data.user.role})`;
+    document.getElementById('adminName').textContent = label;
+    document.getElementById('drawerUser').textContent = label;
     Permissions.list = data.user.permissions;
+    return true;
   } catch (err) {
-    window.location.href = '/admin/login.html';
+    // Only a real "not signed in" goes back to the login page. A weak connection
+    // or a server still waking up must not look like being logged out.
+    if (err.status === 401 || err.status === 403) {
+      window.location.href = '/admin/login.html';
+    } else {
+      showStartupError(`The dashboard couldn't load. ${err.message}`);
+    }
+    return false;
   }
 }
 
@@ -110,9 +123,20 @@ function route() {
   return VIEW_LOADERS[hash]();
 }
 
+function setMenu(open) {
+  document.getElementById('sidebar').classList.toggle('open', open);
+  document.getElementById('navBackdrop').classList.toggle('open', open);
+  document.body.classList.toggle('menu-open', open);
+  document.getElementById('menuToggle').setAttribute('aria-expanded', String(open));
+  if (open) {
+    const active = document.querySelector('.side-nav button.active');
+    if (active) active.scrollIntoView({ block: 'nearest' });
+    document.getElementById('drawerClose').focus({ preventScroll: true });
+  }
+}
+
 function closeMenu() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('menuToggle').setAttribute('aria-expanded', 'false');
+  setMenu(false);
 }
 
 function bindNav() {
@@ -122,10 +146,10 @@ function bindNav() {
       else location.hash = `#${btn.dataset.view}`;
     });
   });
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    const open = document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('menuToggle').setAttribute('aria-expanded', String(open));
-  });
+  document.getElementById('menuToggle').addEventListener('click', () => setMenu(true));
+  document.getElementById('drawerClose').addEventListener('click', closeMenu);
+  document.getElementById('navBackdrop').addEventListener('click', closeMenu);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
   window.addEventListener('hashchange', route);
 }
 
@@ -168,7 +192,9 @@ async function loadOverview() {
       <div class="stat-card"><b>${stats.featured}</b><span>Featured</span></div>
       <div class="stat-card"><b>${stats.deals}</b><span>On deal</span></div>
       <div class="stat-card"><b>${stats.outOfStock}</b><span>Out of stock</span></div>`;
-  } catch (err) { /* non-critical */ }
+  } catch (err) {
+    document.getElementById('statGrid').innerHTML = `<div class="alert" style="grid-column:1/-1;">${icon('warning')}<div>Couldn't load the statistics. ${escapeHtml(err.message)}<br><button type="button" class="btn btn-ghost btn-sm" data-reload>Try again</button></div></div>`;
+  }
   try {
     const { items } = await API.get('/api/products?perPage=100');
     const missing = items.filter(p => p.images_missing).length;
