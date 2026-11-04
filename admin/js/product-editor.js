@@ -373,8 +373,7 @@ async function editorAction(action, button) {
   try {
     if (action === 'preview') {
       editor.dirty = editor.dirty || !editor.id;
-      if (!(await saveDraftNow())) return;
-      window.open(`/product-details.html?preview=${editor.id}`, '_blank', 'noopener');
+      await openAfterSaving(async () => ((await saveDraftNow()) ? `/product-details.html?preview=${editor.id}` : null));
       return;
     }
     if (editor.dirty || editor.saving || !editor.id) {
@@ -456,9 +455,11 @@ async function drawAiToolbar() {
 }
 
 // Toolbar buttons take focus; remember the selection the moment the mouse goes down
-document.addEventListener('mousedown', (e) => {
-  if (editor && editor.rich && e.target.closest('[data-ai-tool]')) editor.rich.captureSelection();
-});
+const rememberAiSelection = (e) => {
+  if (editor && editor.rich && e.target.closest && e.target.closest('[data-ai-tool]')) editor.rich.captureSelection();
+};
+document.addEventListener('mousedown', rememberAiSelection);
+document.addEventListener('touchstart', rememberAiSelection, { passive: true });
 
 function productContext() {
   const f = collectFields();

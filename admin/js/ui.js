@@ -2,6 +2,28 @@
 // Small helpers shared by every dashboard view: toasts, form building and modals.
 // Loaded first. All dynamic text goes through escapeHtml (public/js/api.js).
 
+/** A clear message in place of an empty screen. */
+function showStartupError(message) {
+  const main = document.querySelector('.main') || document.body;
+  if (main.querySelector('.startup-error')) return;
+  const box = document.createElement('div');
+  box.className = 'alert startup-error';
+  box.setAttribute('role', 'alert');
+  box.innerHTML = `<div><b>${escapeHtml(message)}</b><br>Check your connection, then try again. If this keeps happening, update your browser.<br><button type="button" class="btn btn-ghost btn-sm" data-reload>Try again</button></div>`;
+  main.prepend(box);
+}
+
+// A script that fails to load, or that an old browser can't read, would otherwise
+// leave a blank dashboard with no explanation
+window.addEventListener('error', (e) => {
+  if (window.dashboardStarted) return;
+  const failedFile = e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK');
+  if (failedFile || e.message) {
+    const show = () => showStartupError("Part of the dashboard couldn't load.");
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+  }
+}, true);
+
 const Permissions = { list: [], can: (p) => Permissions.list.includes(p) };
 
 // Dates and times follow Regional Settings
@@ -35,6 +57,55 @@ function toast(message, type = 'success') {
   wrap.append(el);
   setTimeout(() => el.remove(), type === 'error' ? 7000 : 3500);
 }
+
+/**
+ * Opens a new tab for a preview that first has to save. Phones only allow a new
+ * tab straight after a tap, so it opens first and receives its address once saved.
+ */
+async function openAfterSaving(getUrl) {
+  const tab = window.open('about:blank', '_blank');
+  try {
+    const url = await getUrl();
+    if (!url) {
+      if (tab) tab.close();
+    } else if (tab) {
+      tab.location.href = url;
+    } else {
+      window.location.href = url; // tab blocked: at least show the preview here
+    }
+  } catch (err) {
+    if (tab) tab.close();
+    throw err;
+  }
+}
+
+// Phones show every table as cards, with each value labelled from its column heading
+function labelTableCells(root = document) {
+  root.querySelectorAll('.main table').forEach((table) => {
+    const headings = [...table.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+    table.querySelectorAll('tbody tr').forEach((row) => {
+      [...row.children].forEach((cell, i) => {
+        if (cell.hasAttribute('colspan')) return;
+        if (headings[i] && cell.dataset.label !== headings[i]) cell.dataset.label = headings[i];
+        cell.classList.toggle('is-blank', !cell.textContent.trim() && !cell.querySelector('img, svg, button, input, a'));
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const main = document.querySelector('.main');
+  if (!main) return;
+  labelTableCells();
+  let queued = false;
+  new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      labelTableCells();
+    });
+  }).observe(main, { childList: true, subtree: true });
+});
 
 const apiPatch = (url, body) => API.request(url, { method: 'PATCH', body: JSON.stringify(body) });
 

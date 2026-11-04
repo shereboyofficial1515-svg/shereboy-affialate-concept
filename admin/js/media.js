@@ -85,7 +85,7 @@ function createBrowser(root, { kind, onItemClick, selectable }) {
 function createUploader(root, { onUploaded, accept = ACCEPT, getOptions = () => ({}) }) {
   root.innerHTML = `
     <label class="dropzone" tabindex="0">
-      <input type="file" multiple accept="${accept}" hidden />
+      <input type="file" class="file-input" multiple accept="${accept}" />
       <span class="dropzone-title">${icon('plus')} Drop files here, or click to choose</span>
       <small>JPG, PNG, WEBP, GIF (10 MB) · SVG (2 MB) · MP4, WEBM (50 MB) · PDF (20 MB)</small>
     </label>

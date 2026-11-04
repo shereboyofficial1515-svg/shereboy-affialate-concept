@@ -241,7 +241,7 @@ async function loadKnowledgeView() {
     ];
     section.innerHTML = `
       <div class="panel-head"><h3>Knowledge entries</h3><div class="row-actions">
-        <label class="btn btn-ghost btn-sm" tabindex="0">Upload document<input type="file" id="kbFile" accept=".txt,.md,.csv,.pdf" hidden /></label>
+        <label class="btn btn-ghost btn-sm" tabindex="0">Upload document<input type="file" class="file-input" id="kbFile" accept=".txt,.md,.csv,.pdf" /></label>
         <button type="button" class="btn btn-primary btn-sm" data-new>${icon('plus')} Add entry</button></div></div>
       <p class="muted-cell" style="margin-bottom:12px;">For each request the AI receives only the passages most relevant to it, marked as reference material. It's kept apart from your instructions and the safety rules. Documents can be TXT, Markdown, CSV or text-based PDF, up to 10 MB.</p>
       <div class="panel table-panel"><table><thead><tr><th>Entry</th><th>Type</th><th>Size</th><th>Status</th><th>Actions</th></tr></thead><tbody>

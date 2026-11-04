@@ -30,6 +30,19 @@ class RichEditor {
       if (btn) this.command(btn.dataset.cmd, btn.dataset.value);
     });
     this.content.addEventListener('input', () => this.changed());
+    // Tapping a toolbar button on a phone can drop the selection, so the last one is
+    // remembered as it changes, rather than at the moment of the tap
+    this.lastRange = null;
+    const track = () => {
+      if (!this.content.isConnected) {
+        document.removeEventListener('selectionchange', track);
+        return;
+      }
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount || !this.content.contains(selection.anchorNode)) return;
+      this.lastRange = selection.isCollapsed ? null : selection.getRangeAt(0).cloneRange();
+    };
+    document.addEventListener('selectionchange', track);
     this.content.addEventListener('paste', (e) => {
       // Pasted web pages bring messy styling: keep the words
       e.preventDefault();
@@ -44,6 +57,11 @@ class RichEditor {
 
   command(cmd, value) {
     this.content.focus();
+    const current = window.getSelection();
+    if (this.lastRange && current && current.isCollapsed) {
+      current.removeAllRanges();
+      current.addRange(this.lastRange);
+    }
     if (cmd === 'link') {
       const url = window.prompt('Link address (https://…)');
       if (!url) return;
@@ -75,6 +93,8 @@ class RichEditor {
     this.savedRange = null;
     if (selection && selection.rangeCount && !selection.isCollapsed && this.content.contains(selection.anchorNode) && this.content.contains(selection.focusNode)) {
       this.savedRange = selection.getRangeAt(0).cloneRange();
+    } else if (this.lastRange) {
+      this.savedRange = this.lastRange.cloneRange();
     }
     return !!this.savedRange;
   }
@@ -94,6 +114,7 @@ class RichEditor {
       template.innerHTML = html;
       this.savedRange.insertNode(template.content);
       this.savedRange = null;
+      this.lastRange = null;
     } else {
       this.setHTML(html);
     }

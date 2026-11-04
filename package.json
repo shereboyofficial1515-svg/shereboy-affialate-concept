@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "node server.js",
     "seed": "node database/seed.js",
-    "test": "node --test test/products.test.js test/newsletter.test.js test/campaigns.test.js test/email-limits.test.js test/admin-cms.test.js",
+    "test": "node --test test/products.test.js test/newsletter.test.js test/campaigns.test.js test/email-limits.test.js test/admin-cms.test.js test/admin-mobile.test.js",
     "preview": "node test/helpers/preview-server.js",
     "recover-images": "node scripts/recover-product-images.js"
   },
